@@ -3,4 +3,6 @@
 
 menu "Intel Internal"
 
+rsource "drivers/Kconfig"
+
 endmenu

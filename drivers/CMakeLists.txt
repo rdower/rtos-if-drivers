@@ -1,4 +1,4 @@
 # Copyright (c) 2020 Intel Corp.
 # SPDX-License-Identifier: Apache-2.0
 
-add_subdirectory(drivers)
+add_subdirectory(timer)

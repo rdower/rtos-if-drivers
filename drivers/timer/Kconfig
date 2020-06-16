@@ -1,0 +1,18 @@
+# Copyright (c) 2020 Intel Corp.
+# SPDX-License-Identifier: Apache-2.0
+
+menu "Timer Drivers"
+
+config ISH_HPET_TIMER
+	bool "HPET timer for ISH"
+	depends on X86
+	select IOAPIC if X86
+	select LOAPIC if X86
+	select TIMER_READS_ITS_FREQUENCY_AT_RUNTIME
+	select TICKLESS_CAPABLE
+	select TICKLESS_KERNEL
+	help
+	  This option selects High Precision Event Timer (HPET) as a
+	  system timer. This driver is for the HPET on ISH.
+
+endmenu
