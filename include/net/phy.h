@@ -22,7 +22,7 @@
 /* TODO: mii.h should be pointed to net/mii.h if the files is ready
  * with all MII defination needed.
  */
-#include <../../modules/hal/intel/zephyr/include/net/mii.h>
+#include <net/mii.h>
 
 /**
  * @addtogroup ethernet
