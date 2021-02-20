@@ -10,3 +10,20 @@ get_filename_component(APPLICATION_PROJECT_DIR
 list(APPEND BOARD_ROOT ${APPLICATION_PROJECT_DIR})
 list(APPEND SOC_ROOT ${APPLICATION_PROJECT_DIR})
 list(APPEND DTS_ROOT ${APPLICATION_PROJECT_DIR})
+
+# To support driver development in the internal tree for boards that are
+# already upstream, allow having an app-independent overlay file for
+# specific boards under overlay/<board>.overlay. Do this without losing
+# support for app-specific overlays, although in a limited manner (for
+# the most common <board>.overlay file convention in the root directory
+# of the application.
+set(INTEL_OVERLAY ${APPLICATION_PROJECT_DIR}/overlay/${BOARD}.overlay)
+set(BOARD_OVERLAY ${APPLICATION_SOURCE_DIR}/${BOARD}.overlay)
+
+if(EXISTS ${INTEL_OVERLAY})
+  if (EXISTS ${BOARD_OVERLAY})
+    set(DTC_OVERLAY_FILE "${INTEL_OVERLAY} ${BOARD_OVERLAY}")
+  else()
+    set(DTC_OVERLAY_FILE ${INTEL_OVERLAY})
+  endif()
+endif()
