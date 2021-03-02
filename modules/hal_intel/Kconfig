@@ -1,0 +1,13 @@
+# Copyright (c) 2021 Intel Corporation.
+# SPDX-License-Identifier: Apache-2.0
+
+config HAS_INTEL
+        bool
+
+menu "intel hal drivers"
+        depends on HAS_INTEL
+
+config INTEL_DMA
+        bool "Enable DMA driver"
+
+endmenu

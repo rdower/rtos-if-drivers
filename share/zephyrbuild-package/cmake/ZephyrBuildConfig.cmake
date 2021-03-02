@@ -10,6 +10,7 @@ get_filename_component(APPLICATION_PROJECT_DIR
 list(APPEND BOARD_ROOT ${APPLICATION_PROJECT_DIR})
 list(APPEND SOC_ROOT ${APPLICATION_PROJECT_DIR})
 list(APPEND DTS_ROOT ${APPLICATION_PROJECT_DIR})
+list(APPEND MODULE_EXT_ROOT ${APPLICATION_PROJECT_DIR})
 
 # To support driver development in the internal tree for boards that are
 # already upstream, allow having an app-independent overlay file for
