@@ -1,0 +1,1 @@
+target_sources_ifdef(CONFIG_GPIO_INTEL_EHL drivers__gpio PRIVATE gpio_intel_ehl.c)

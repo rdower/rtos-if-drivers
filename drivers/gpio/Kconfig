@@ -1,0 +1,19 @@
+# ELkhart Lake GPIO configuration options
+
+# Copyright (c) 2021 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+menuconfig GPIO_INTEL_EHL
+	bool "Intel Elkhart Lake SoC GPIO"
+	help
+	  This option enables the GPIO driver for Intel Elkhart
+	  Lake SoC.
+
+config GPIO_INTEL_EHL_CHECK_PERMS
+	bool "Check permissions before manipulating GPIO"
+	depends on GPIO_INTEL_EHL
+	help
+	  This option enables the checks to make sure the GPIO
+	  pin can be manipulated. Only if the pin is owned by
+	  the host software and its functioning as GPIO, then
+	  the driver allows manipulating the pin.

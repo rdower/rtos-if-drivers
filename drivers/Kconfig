@@ -4,5 +4,6 @@
 menu "Device Drivers"
 
 rsource "timer/Kconfig"
+rsource "gpio/Kconfig"
 
 endmenu

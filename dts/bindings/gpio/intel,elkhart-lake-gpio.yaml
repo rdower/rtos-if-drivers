@@ -1,0 +1,17 @@
+# Copyright (c) 2021 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+    Elkhart Lake GPIO Map
+
+    Map from Elkhart Lake GPIO to component GPIO driver instances.
+
+    The Elkhart Lake GPIO architecture provides six controllers each of
+    which has more than 32 pins.  To be supported on Zephyr these pins
+    must be mapped to sub-devices that have 32 pins each.
+    This compatible is used to map the full controller to its
+    subdevices.
+
+compatible: "intel,elkhart-lake-gpio"
+
+include: [gpio-nexus.yaml, base.yaml]
