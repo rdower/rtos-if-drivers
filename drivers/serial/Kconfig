@@ -1,9 +1,11 @@
-# Kconfig - INTEL SERIAL driver configuration options
+# Kconfig - serial driver configuration options
+
 #
-# Copyright (c) 2021 Intel Corporation
+# Copyright (c) 2014-2015 Wind River Systems, Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
 
 rsource "Kconfig.uart_intel"
 
+rsource "Kconfig.sedi"

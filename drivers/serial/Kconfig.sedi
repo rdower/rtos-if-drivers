@@ -1,0 +1,118 @@
+menuconfig UART_SEDI
+	depends on SEDI
+	bool "PSE UART driver"
+	default n
+	select SERIAL_HAS_DRIVER
+	select SERIAL_SUPPORT_INTERRUPT
+	help
+	  This option enables the PSE UART driver.
+	  This driver is simply a shim driver based on the UART driver
+	  provided by the PSE BSP.
+
+config UART_RS_485
+	bool "Enable RS-485 support"
+	help
+	  This option adds supprt for RS485 mode of operation.
+	  Default operation would be in RS232 mode and can be configured to
+	  enable RS485 mode of operation using RS485 APIs
+
+
+config UART_9_BIT
+	bool "Enable 9-bit operation support"
+	help
+	  This option adds support for 9-bit operation to UART via line control.
+
+config UART_SEDI_USE_DMA
+	depends on UART_SEDI
+	bool "USE UART DMA for Asynchronous Transfers"
+	default n
+	select DMA
+	select DMA_SEDI
+	select DMA_O
+	select DMA_1
+	help
+	 This option enables UART DMA feature to be used for asynchrounous
+	 data transfers. All Tx operaton are done using dma channel 0 and
+	 all Rx operations are done using dma channel 1.
+
+config UART_SEDI_0
+	depends on UART_SEDI
+	bool "Enable UART 0 controller"
+	default n
+
+if (UART_9_BIT)
+config UART_SEDI_0_RX_ADDR
+	depends on UART_SEDI_0
+	int "Receive address of this node when in  9-bit mode"
+	range 0 255
+	default 1
+endif
+
+config UART_SEDI_1
+	depends on UART_SEDI
+	bool "Enable UART 1 controller"
+	default n
+
+if (UART_9_BIT)
+config UART_SEDI_1_RX_ADDR
+	depends on UART_SEDI_1
+	int "Receive address of this node when in  9-bit mode"
+	range 0 255
+	default 2
+endif
+
+
+config UART_SEDI_2
+	depends on UART_SEDI
+	bool "Enable UART 2 controller"
+	default n
+
+if (UART_9_BIT)
+config UART_SEDI_2_RX_ADDR
+	depends on UART_SEDI_2
+	int "Receive address of this node when in  9-bit mode"
+	range 0 255
+	default 3
+endif
+
+
+config UART_SEDI_3
+	depends on UART_SEDI
+	bool "Enable UART 3 controller"
+	default n
+
+if (UART_9_BIT)
+config UART_SEDI_3_RX_ADDR
+	depends on UART_SEDI_3
+	int "Receive address of this node when in  9-bit mode"
+	range 0 255
+	default 4
+endif
+
+
+config UART_SEDI_4
+	depends on UART_SEDI
+	bool "Enable UART 4 controller"
+	default n
+
+if (UART_9_BIT)
+config UART_SEDI_4_RX_ADDR
+	depends on UART_SEDI_4
+	int "Receive address of this node when in  9-bit mode"
+	range 0 255
+	default 5
+endif
+
+
+config UART_SEDI_5
+	depends on UART_SEDI
+	bool "Enable UART 5 controller"
+	default n
+
+if (UART_9_BIT)
+config UART_SEDI_5_RX_ADDR
+	depends on UART_SEDI_5
+	int "Receive address of this node when in  9-bit mode"
+	range 0 255
+	default 6
+endif
