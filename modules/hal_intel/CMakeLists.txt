@@ -10,8 +10,9 @@ if (CONFIG_HAS_INTEL)
 
   zephyr_include_directories(${INC_DIR}/drivers)
   zephyr_include_directories(${INC_DIR}/include)
-  zephyr_include_directories(${INC_DIR}/include/driver)
+  zephyr_include_directories(${INC_DIR}/include/drivers)
   zephyr_include_directories(${INC_DIR}/soc/ehl/include)
 
   zephyr_library_sources_ifdef(CONFIG_INTEL_DMA    ${SRC_DIR}/dma/dma_ann_1p0.c)
+  zephyr_library_sources_ifdef(CONFIG_INTEL_UART    ${SRC_DIR}/uart/dw_uart.c)
 endif()

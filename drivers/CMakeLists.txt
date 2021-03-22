@@ -4,3 +4,4 @@
 add_subdirectory(timer)
 add_subdirectory(gpio)
 add_subdirectory(dma)
+add_subdirectory(serial)

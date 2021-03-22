@@ -6,5 +6,5 @@ menu "Device Drivers"
 rsource "timer/Kconfig"
 rsource "gpio/Kconfig"
 rsource "dma/Kconfig"
-
+rsource "serial/Kconfig"
 endmenu

@@ -10,4 +10,7 @@ menu "intel hal drivers"
 config INTEL_DMA
         bool "Enable DMA driver"
 
+config INTEL_UART
+        bool "Enable UART driver"
+
 endmenu
