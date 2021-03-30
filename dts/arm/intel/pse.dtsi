@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Intel Corporation
+ * Copyright (c) 2021 Intel Corporation
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -17,11 +17,18 @@
 		};
 	};
 
-	l2sram: memory@60000000{
+	l2sram_ro: memory@60000000{
 		device_type = "memory";
 		compatible = "mmio-sram";
-		label = "l2sram";
-		reg = <0x60000000 0x100000>;
+		label = "l2sram_ro";
+		reg = <0x60000000 0x80000>;
+	};
+
+	l2sram_rw: memory@60080000{
+		device_type = "memory";
+		compatible = "mmio-sram";
+		label = "l2sram_rw";
+		reg = <0x60080000 0x80000>;
 	};
 
 	iccm: memory@0{
@@ -116,7 +123,14 @@
 		hw_flow_control = <0>;
 		status = "disabled";
 	};
-
+	hpet: hpet@40A00000{
+		label = "HPET";
+		compatible = "intel,hpet";
+		interrupt-parent = <&nvic>;
+		reg = <0x40A00000 0x400>;
+		interrupts = <19 2>;
+		status = "okay";
+	};
 };
 
 &nvic {

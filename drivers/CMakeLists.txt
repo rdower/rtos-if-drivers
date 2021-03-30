@@ -1,4 +1,4 @@
-# Copyright (c) 2020 Intel Corp.
+# Copyright (c) 2021 Intel Corp.
 # SPDX-License-Identifier: Apache-2.0
 
 add_subdirectory(ethernet)
