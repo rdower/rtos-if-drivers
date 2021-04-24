@@ -13,4 +13,7 @@ config INTEL_DMA
 config INTEL_UART
         bool "Enable UART driver"
 
+config INTEL_TGPIO
+	bool "Enable Time-Aware GPIO driver"
+
 endmenu
