@@ -5,8 +5,8 @@ menu "Device Drivers"
 
 rsource "ethernet/Kconfig"
 rsource "timer/Kconfig"
-rsource "gpio/Kconfig"
 rsource "dma/Kconfig"
 rsource "serial/Kconfig"
 rsource "tgpio/Kconfig"
+
 endmenu
