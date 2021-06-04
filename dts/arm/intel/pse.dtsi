@@ -123,7 +123,48 @@
 		hw_flow_control = <0>;
 		status = "disabled";
 	};
-	hpet: hpet@40A00000{
+
+	qep0: qep@48600000 {
+		compatible = "intel,pse-qep";
+		reg = <0x48600000 0x1000>;
+		interrupts = <46 2>;
+		peripheral-id = <0>;
+		label = "QEP_0";
+		interrupt-parent = <&nvic>;
+		status = "okay";
+	};
+
+	qep1: qep@48602000 {
+		compatible = "intel,pse-qep";
+		reg = <0x48602000 0x1000>;
+		interrupts = <47 2>;
+		peripheral-id = <1>;
+		label = "QEP_1";
+		interrupt-parent = <&nvic>;
+		status = "disabled";
+	};
+
+	qep2: qep@48604000 {
+		compatible = "intel,pse-qep";
+		reg = <0x48604000 0x1000>;
+		interrupts = <48 2>;
+		peripheral-id = <2>;
+		label = "QEP_2";
+		interrupt-parent = <&nvic>;
+		status = "disabled";
+	};
+
+	qep3: qep@48606000 {
+		compatible = "intel,pse-qep";
+		reg = <0x48606000 0x1000>;
+		interrupts = <49 2>;
+		peripheral-id = <3>;
+		label = "QEP_3";
+		interrupt-parent = <&nvic>;
+		status = "disabled";
+	};
+
+	hpet: hpet@40A00000 {
 		label = "HPET";
 		compatible = "intel,hpet";
 		interrupt-parent = <&nvic>;

@@ -1,0 +1,22 @@
+# Copyright (c) 2021 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+description: INTEL PSE QEP
+
+compatible: "intel,pse-qep"
+
+include: [base.yaml]
+
+properties:
+    reg:
+      type: array
+      required: true
+
+    interrupts:
+      type: array
+      required: true
+
+    peripheral-id:
+      type: int
+      description: QEP driver peripheral ID
+      required: true

@@ -6,3 +6,5 @@ add_subdirectory(timer)
 add_subdirectory(dma)
 add_subdirectory(serial)
 add_subdirectory(tgpio)
+add_subdirectory(qep)
+

@@ -8,5 +8,6 @@ rsource "timer/Kconfig"
 rsource "dma/Kconfig"
 rsource "serial/Kconfig"
 rsource "tgpio/Kconfig"
+rsource "qep/Kconfig"
 
 endmenu
