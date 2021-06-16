@@ -164,12 +164,56 @@
 		status = "disabled";
 	};
 
-	hpet: hpet@40A00000 {
+	hpet: hpet@40A00000{
 		label = "HPET";
 		compatible = "intel,hpet";
 		interrupt-parent = <&nvic>;
 		reg = <0x40A00000 0x400>;
 		interrupts = <19 2>;
+		status = "okay";
+	};
+
+	can0: can@50300000 {
+		compatible = "intel,pse-can";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		reg = <0x50300000 0x1000>;
+		interrupts = <53 1>;
+		peripheral-id = <53>;
+		label = "CAN_SEDI_0";
+		sjw = <4>;
+		bus-speed = <500000>;
+		prop-seg = <1>;
+		phase-seg1 = <5>;
+		phase-seg2 = <3>;
+		sjw-data = <4>;
+		bus-speed-data = <500000>;
+		prop-seg-data = <1>;
+		phase-seg1-data = <5>;
+		phase-seg2-data = <3>;
+		interrupt-parent = <&nvic>;
+		status = "okay";
+	};
+
+	can1: can@50310000 {
+		compatible = "intel,pse-can";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		reg = <0x50310000 0x1000>;
+		interrupts = <54 1>;
+		peripheral-id = <54>;
+		label = "CAN_SEDI_1";
+		sjw = <4>;
+		bus-speed = <500000>;
+		prop-seg = <1>;
+		phase-seg1 = <5>;
+		phase-seg2 = <3>;
+		sjw-data = <4>;
+		bus-speed-data = <500000>;
+		prop-seg-data = <1>;
+		phase-seg1-data = <5>;
+		phase-seg2-data = <3>;
+		interrupt-parent = <&nvic>;
 		status = "okay";
 	};
 };

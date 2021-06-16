@@ -10,5 +10,6 @@ rsource "serial/Kconfig"
 rsource "spi/Kconfig"
 rsource "tgpio/Kconfig"
 rsource "qep/Kconfig"
+rsource "can/Kconfig"
 
 endmenu

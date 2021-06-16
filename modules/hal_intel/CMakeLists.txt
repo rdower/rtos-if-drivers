@@ -39,6 +39,7 @@ if (CONFIG_HAS_SEDI)
 
   zephyr_library_sources_ifdef(CONFIG_UART_SEDI   ${sedi_lib_src_dir}/drivers/usart/dw_uart.c)
   zephyr_library_sources_ifdef(CONFIG_QEP_SEDI   ${sedi_lib_src_dir}/drivers/qep/qep_sedi.c)
+  zephyr_library_sources_ifdef(CONFIG_CAN_SEDI   ${sedi_lib_src_dir}/drivers/can/sedi_driver_can.c)
   zephyr_library_sources(${sedi_lib_src_dir}/drivers/ipc/ipc_bsp.c
     ${sedi_lib_src_dir}/drivers/ipc/fwst.c)
 
