@@ -14,6 +14,7 @@ if (CONFIG_HAS_INTEL)
   zephyr_library_sources(${SRC_DIR}/common/hal_driver_common.c)
   zephyr_library_sources_ifdef(CONFIG_INTEL_DMA    ${SRC_DIR}/dma/dma_ann_1p0.c)
   zephyr_library_sources_ifdef(CONFIG_INTEL_UART    ${SRC_DIR}/uart/dw_uart.c)
+  zephyr_library_sources_ifdef(CONFIG_INTEL_SPI    ${SRC_DIR}/spi/dw_spi.c)
   zephyr_library_sources_ifdef(CONFIG_INTEL_TGPIO    ${SRC_DIR}/tgpio/intel_tgpio.c)
 endif()
 
