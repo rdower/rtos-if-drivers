@@ -10,4 +10,4 @@ add_subdirectory(spi)
 add_subdirectory(tgpio)
 add_subdirectory(qep)
 add_subdirectory(can)
-
+add_subdirectory(pwm)

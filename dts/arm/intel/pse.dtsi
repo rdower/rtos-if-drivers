@@ -273,6 +273,22 @@
 		timeout-ms = <5000>;
 		status = "okay";
 	};
+
+	pwm0: pwm@48400000 {
+		compatible = "intel,pse-pwm";
+		reg = <0x48400000 0x1000>;
+		peripheral-id = <0>;
+		label = "PWM_0";
+		status = "okay";
+	};
+
+	pwm1: pwm@48401000 {
+		compatible = "intel,pse-pwm";
+		reg = <0x48401000 0x1000>;
+		peripheral-id = <1>;
+		label = "PWM_1";
+		status = "okay";
+	};
 };
 
 &nvic {
