@@ -22,6 +22,9 @@ config INTEL_TGPIO
 config INTEL_PWM
 	bool "Enable PWM driver"
 
+config INTEL_EMMC
+	bool "Enable eMMC driver"
+
 endmenu
 
 config HAS_SEDI

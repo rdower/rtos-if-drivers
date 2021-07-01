@@ -20,5 +20,6 @@ rsource "i2s/Kconfig"
 rsource "audio/Kconfig"
 rsource "sideband/Kconfig"
 rsource "counter/Kconfig"
+rsource "disk/Kconfig"
 
 endmenu
