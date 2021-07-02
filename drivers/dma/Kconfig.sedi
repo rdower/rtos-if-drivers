@@ -1,0 +1,24 @@
+# Kconfig - SEDI DMA configuration options
+#
+#
+# Copyright (c) 2018-2021 Intel Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+menuconfig DMA_SEDI
+	bool "Enable SEDI DMA driver"
+	select DMA_64BIT
+	depends on DMA
+	help
+	  SEDI DMA driver.
+
+if DMA_SEDI
+
+config DMA_MULTIPLE_BLOCK
+	bool "support multiple block (linked list) mode"
+	default y
+	help
+		"support multiple block (linked list) mode"
+
+endif

@@ -1,0 +1,22 @@
+# Copyright (c) 2019-2021 Intel Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+---
+description: INTEL SEDI DMA controller.
+
+compatible: "intel,sedi-dma"
+
+include: dma-controller.yaml
+
+properties:
+    reg:
+      required: true
+
+    interrupts:
+      required: true
+
+    peripheral-id:
+      type: int
+      description: DMA driver peripheral ID
+      required: true
+...

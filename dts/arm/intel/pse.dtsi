@@ -216,6 +216,36 @@
 		interrupt-parent = <&nvic>;
 		status = "okay";
 	};
+	dma0: dma@50100000 {
+		compatible = "intel,sedi-dma";
+		#dma-cells = <8>;
+		reg = <0x50100000 0x4000>;
+		interrupts = <11 2>;
+		peripheral-id = <0>;
+		label = "DMA_0";
+		interrupt-parent = <&nvic>;
+		status = "okay";
+	};
+	dma1: dma@50104000 {
+		compatible = "intel,sedi-dma";
+		#dma-cells = <8>;
+		reg = <0x50104000 0x4000>;
+		interrupts = <12 2>;
+		peripheral-id = <1>;
+		label = "DMA_1";
+		interrupt-parent = <&nvic>;
+		status = "disabled";
+	};
+	dma2: dma@50108000 {
+		compatible = "intel,sedi-dma";
+		#dma-cells = <8>;
+		reg = <0x50108000 0x4000>;
+		interrupts = <13 2>;
+		peripheral-id = <2>;
+		label = "DMA_2";
+		interrupt-parent = <&nvic>;
+		status = "disabled";
+	};
 };
 
 &nvic {

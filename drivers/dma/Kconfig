@@ -11,3 +11,4 @@
 #
 
 rsource "Kconfig.dma_intel"
+rsource "Kconfig.sedi"
