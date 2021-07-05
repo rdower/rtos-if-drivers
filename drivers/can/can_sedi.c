@@ -643,12 +643,12 @@ static int can_sedi_check_avilable_filter(const struct device *dev,
 
 	if (drv_data->id == CAN_0) {
 		filter_nr = can_sedi_get_free_filter_index(drv_data->id,
-							  (struct filter_data_t *)&can0_filter_list,
-							   msg_id);
+				(struct filter_data_t *)&can0_filter_list,
+				 msg_id);
 	} else {
 		filter_nr = can_sedi_get_free_filter_index(drv_data->id,
-							  (struct filter_data_t *)&can1_filter_list,
-							   msg_id);
+				(struct filter_data_t *)&can1_filter_list,
+				 msg_id);
 	}
 	k_sem_give(&g_sem);
 	return filter_nr;
@@ -921,3 +921,86 @@ static void can_sedi_isr(void *arg)
 	sedi_can_isr(can_dev->id);
 }
 
+#ifdef CONFIG_NET_SOCKETS_CAN
+#include "../drivers/can/socket_can_generic.h"
+
+#if DT_NODE_HAS_STATUS(DT_DRV_INST(0), okay)
+#define SOCKET_CAN_DEV_NAME_0 "SOCKET_CAN_PSE_0"
+
+CAN_DEFINE_MSGQ(socket_can_msgq_0, 5);
+K_THREAD_STACK_DEFINE(rx_thread_stack_0, RX_THREAD_STACK_SIZE);
+
+static int socket_can_init_0(const struct device *dev)
+{
+	const struct device *can_dev = DEVICE_GET(can_0);
+
+	if (!can_dev) {
+		LOG_ERR("Can dev0 is null\n");
+		return -1;
+	}
+	struct socket_can_context *socket_context = dev->data;
+
+	LOG_DBG("Init socket CAN device %p (%s) for dev %p (%s)",
+		dev, dev->name, can_dev, can_dev->name);
+
+	socket_context->can_dev = can_dev;
+	socket_context->msgq = &socket_can_msgq_0;
+	socket_context->tx_cb = tx_irq_callback_0;
+
+	socket_context->rx_tid =
+		k_thread_create(&socket_context->rx_thread_data,
+				rx_thread_stack_0,
+				K_THREAD_STACK_SIZEOF(rx_thread_stack_0),
+				rx_thread, socket_context, NULL, NULL,
+				RX_THREAD_PRIORITY, 0, K_NO_WAIT);
+
+	return 0;
+}
+
+NET_DEVICE_INIT(socket_can_pse_0, SOCKET_CAN_DEV_NAME_0, socket_can_init_0,
+		device_pm_control_nop, &socket_can_context_0, NULL,
+		CONFIG_KERNEL_INIT_PRIORITY_DEVICE,
+		&socket_can_api,
+		CANBUS_RAW_L2, NET_L2_GET_CTX_TYPE(CANBUS_RAW_L2), CAN_MTU);
+#endif
+
+#if DT_NODE_HAS_STATUS(DT_DRV_INST(1), okay)
+#define SOCKET_CAN_DEV_NAME_1 "SOCKET_CAN_PSE_1"
+
+CAN_DEFINE_MSGQ(socket_can_msgq_1, 5);
+K_THREAD_STACK_DEFINE(rx_thread_stack_1, RX_THREAD_STACK_SIZE);
+static struct socket_can_context socket_can_context_1;
+
+static int socket_can_init_1(const struct device *dev)
+{
+	const struct device *can_dev = DEVICE_GET(can_1);
+
+	if (!can_dev) {
+		LOG_ERR("Can dev1 is null\n");
+	}
+	struct socket_can_context *socket_context = dev->data;
+
+	LOG_DBG("Init socket CAN device %p (%s) for dev %p (%s)",
+		dev, dev->name, can_dev, can_dev->name);
+
+	socket_context->can_dev = can_dev;
+	socket_context->msgq = &socket_can_msgq_1;
+
+	socket_context->tx_cb = tx_irq_callback_1;
+	socket_context->rx_tid =
+		k_thread_create(&socket_context->rx_thread_data,
+				rx_thread_stack_1,
+				K_THREAD_STACK_SIZEOF(rx_thread_stack_1),
+				rx_thread, socket_context, NULL, NULL,
+				RX_THREAD_PRIORITY, 0, K_NO_WAIT);
+
+	return 0;
+}
+
+NET_DEVICE_INIT(socket_can_pse_1, SOCKET_CAN_DEV_NAME_1, socket_can_init_1,
+		device_pm_control_nop, &socket_can_context_1, NULL,
+		CONFIG_KERNEL_INIT_PRIORITY_DEVICE,
+		&socket_can_api,
+		CANBUS_RAW_L2, NET_L2_GET_CTX_TYPE(CANBUS_RAW_L2), CAN_MTU);
+#endif
+#endif  /* CONFIG_NET_SOCKETS_CAN */

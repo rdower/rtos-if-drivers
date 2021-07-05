@@ -179,7 +179,7 @@
 		#size-cells = <0>;
 		reg = <0x50300000 0x1000>;
 		interrupts = <53 1>;
-		peripheral-id = <53>;
+		peripheral-id = <0>;
 		label = "CAN_SEDI_0";
 		sjw = <4>;
 		bus-speed = <500000>;
@@ -201,7 +201,7 @@
 		#size-cells = <0>;
 		reg = <0x50310000 0x1000>;
 		interrupts = <54 1>;
-		peripheral-id = <54>;
+		peripheral-id = <1>;
 		label = "CAN_SEDI_1";
 		sjw = <4>;
 		bus-speed = <500000>;
