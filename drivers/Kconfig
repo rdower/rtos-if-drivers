@@ -13,5 +13,6 @@ rsource "tgpio/Kconfig"
 rsource "qep/Kconfig"
 rsource "can/Kconfig"
 rsource "pwm/Kconfig"
+rsource "watchdog/Kconfig"
 
 endmenu

@@ -216,6 +216,7 @@
 		interrupt-parent = <&nvic>;
 		status = "okay";
 	};
+
 	dma0: dma@50100000 {
 		compatible = "intel,sedi-dma";
 		#dma-cells = <8>;
@@ -246,6 +247,7 @@
 		interrupt-parent = <&nvic>;
 		status = "disabled";
 	};
+
 	ipchost: ipc@40400000 {
 		compatible = "intel,sedi-ipc";
 		reg = <0x40400000 0x1000>;
@@ -288,6 +290,14 @@
 		peripheral-id = <1>;
 		label = "PWM_1";
 		status = "okay";
+	};
+
+	watchdog0: wdt@40b00000 {
+	       compatible = "intel,pse-watchdog";
+	       reg = <0x40b00000 0x2000>;
+	       label = "WATCHDOG_0";
+	       interrupts = <25 2>;
+	       interrupt-parent = <&nvic>;
 	};
 };
 
