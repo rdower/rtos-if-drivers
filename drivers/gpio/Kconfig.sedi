@@ -1,0 +1,12 @@
+# Kconfig.pse - SEDI GPIO configuration options
+#
+#
+# Copyright (c) 2021 Intel Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+menuconfig GPIO_SEDI
+	bool "SEDI GPIO driver"
+	help
+	  Enable the GPIO driver using the SEDI library.

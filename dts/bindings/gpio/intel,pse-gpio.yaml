@@ -1,0 +1,10 @@
+description: SEDI GPIO node
+
+include: [gpio-controller.yaml, base.yaml]
+
+properties:
+    reg:
+      required: true
+
+    interrupts:
+      required: true

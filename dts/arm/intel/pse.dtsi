@@ -289,7 +289,26 @@
 		reg = <0x48401000 0x1000>;
 		peripheral-id = <1>;
 		label = "PWM_1";
-		status = "okay";
+	};
+
+	gpio0: gpio@40200000 {
+		compatible = "intel,pse-gpio";
+		gpio-controller;
+		#gpio-cells = <1>;
+		reg = <0x40200000 0x2000>;
+		interrupt-parent = <&nvic>;
+		interrupts = <15 2>;
+		label = "GPIO_0";
+	};
+
+	gpio1: gpio@40300000 {
+		compatible = "intel,pse-gpio";
+		gpio-controller;
+		#gpio-cells = <1>;
+		reg = <0x40300000 0x2000>;
+		interrupt-parent = <&nvic>;
+		interrupts = <16 2>;
+		label = "GPIO_1";
 	};
 
 	watchdog0: wdt@40b00000 {

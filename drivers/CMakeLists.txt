@@ -13,4 +13,5 @@ add_subdirectory(can)
 add_subdirectory(pwm)
 add_subdirectory(watchdog)
 add_subdirectory(i2c)
+add_subdirectory(gpio)
 
