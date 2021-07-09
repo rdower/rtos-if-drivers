@@ -3,3 +3,4 @@
 
 zephyr_library()
 zephyr_library_sources_ifdef(CONFIG_SPI_INTEL spi_intel.c)
+target_sources_ifdef(CONFIG_SPI_SEDI drivers__spi PRIVATE spi_sedi.c)

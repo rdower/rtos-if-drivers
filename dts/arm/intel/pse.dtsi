@@ -386,6 +386,50 @@
 		status = "disabled";
 		};
 
+	spi0: spi@48100000 {
+		compatible = "intel,pse-spi";
+		reg = <0x48100000 0x2000>;
+		label = "SPI_0";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		interrupts = <34 2>;
+		interrupt-parent = <&nvic>;
+		status = "okay";
+		};
+
+	spi1: spi@48102000 {
+		compatible = "intel,pse-spi";
+		reg = <0x48102000 0x2000>;
+		label = "SPI_1";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		interrupts = <35 2>;
+		interrupt-parent = <&nvic>;
+		status = "okay";
+		};
+
+	spi2: spi@48104000 {
+		compatible = "intel,pse-spi";
+		reg = <0x48104000 0x2000>;
+		label = "SPI_2";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		interrupts = <36 2>;
+		interrupt-parent = <&nvic>;
+		status = "disabled";
+		};
+
+	spi3: spi@48106000 {
+		compatible = "intel,pse-spi";
+		reg = <0x48106000 0x2000>;
+		label = "SPI_3";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		interrupts = <37 2>;
+		interrupt-parent = <&nvic>;
+		status = "disabled";
+		};
+
 };
 
 &nvic {

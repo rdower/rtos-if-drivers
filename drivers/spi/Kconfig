@@ -7,3 +7,4 @@
 #
 
 rsource "Kconfig.spi_intel"
+rsource "Kconfig.sedi"

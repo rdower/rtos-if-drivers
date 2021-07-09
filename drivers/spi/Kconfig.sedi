@@ -1,0 +1,12 @@
+# Kconfig.sedi - Intel SEDI SPI driver configuration options
+#
+#
+# Copyright (c) 2021 Intel Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+menuconfig SPI_SEDI
+	bool "SEDI SPI controller driver"
+	help
+	  Enable support for SEDI SPI controllers.

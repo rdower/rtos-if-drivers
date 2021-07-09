@@ -1,0 +1,29 @@
+#
+# Copyright (c) 2021 Intel Corporation.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+---
+description: Intel SPI controller found on PSE
+
+compatible: "intel,pse-spi"
+
+include: spi-controller.yaml
+
+properties:
+    reg:
+      required: true
+
+    interrupts:
+      required: true
+
+    tx-dma-channel:
+      required: false
+      type: int
+      description: If use spi tx dma method, this is the dma channel for tx.
+
+    rx-dma-channel:
+      required: false
+      type: int
+      description: If use spi rx dma method, this is the dma channel for rx.
+...
