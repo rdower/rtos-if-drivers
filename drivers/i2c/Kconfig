@@ -1,0 +1,13 @@
+# Kconfig - I2C configuration options
+
+#
+# Copyright (c) 2021 Intel Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+#
+# I2C options
+#
+
+rsource "Kconfig.sedi"

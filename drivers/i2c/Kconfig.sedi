@@ -1,0 +1,14 @@
+#
+# Copyright (c) 2021 Intel Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+# Kconfig - SEDI I2C configuration options
+
+menuconfig I2C_SEDI
+	bool "SEDI I2C driver"
+	help
+	  SEDI I2C driver.
+
+

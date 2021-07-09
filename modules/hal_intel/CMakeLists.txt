@@ -35,6 +35,8 @@ if (CONFIG_HAS_SEDI)
 
   zephyr_library_include_directories(${sedi_lib_src_dir}/include)
   zephyr_library_sources(${sedi_lib_src_dir}/drivers/common/sedi_common.c)
+  zephyr_library_sources(${sedi_lib_src_dir}/drivers/i2c/i2c_dw_apb_200a.c)
+  zephyr_library_sources(${sedi_lib_src_dir}/drivers/dma/dma_ann_1p0.c)
   zephyr_library_sources(${sedi_lib_src_dir}/drivers/pm/pm.c ${sedi_lib_src_dir}/drivers/pm/pm.S)
 
   zephyr_library_sources_ifdef(CONFIG_DMA_SEDI    ${sedi_lib_src_dir}/drivers/dma/dma_ann_1p0.c)

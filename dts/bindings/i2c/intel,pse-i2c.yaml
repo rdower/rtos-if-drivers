@@ -1,0 +1,35 @@
+#
+# Copyright (c) 2021 Intel Corporation.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+---
+description: Intel I2C controller found on PSE
+
+compatible: "intel,pse-i2c"
+
+include: i2c-controller.yaml
+
+properties:
+    reg:
+      required: true
+
+    interrupts:
+      required: true
+
+    tx-dma-channel:
+      required: false
+      type: int
+      description: If use I2C tx dma method, this is the dma channel for i2C tx.
+
+    rx-dma-channel:
+      required: false
+      type: int
+      description: If use I2C rx dma method, this is the dma channel for rx
+
+    rx-dma-ext-channel:
+      required: false
+      type: int
+      description: If use I2C rx dma method, this is the second dma channel for rx
+
+...

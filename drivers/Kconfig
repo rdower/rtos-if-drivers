@@ -14,5 +14,6 @@ rsource "qep/Kconfig"
 rsource "can/Kconfig"
 rsource "pwm/Kconfig"
 rsource "watchdog/Kconfig"
+rsource "i2c/Kconfig"
 
 endmenu
