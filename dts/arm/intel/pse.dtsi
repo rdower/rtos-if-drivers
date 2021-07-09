@@ -246,6 +246,33 @@
 		interrupt-parent = <&nvic>;
 		status = "disabled";
 	};
+	ipchost: ipc@40400000 {
+		compatible = "intel,sedi-ipc";
+		reg = <0x40400000 0x1000>;
+		interrupts = <0 1>;
+		label = "IPC_HOST";
+		interrupt-parent = <&nvic>;
+		timeout-ms = <1000>;
+		status = "okay";
+	};
+	ipccsme: ipc@40410000 {
+		compatible = "intel,sedi-ipc";
+		reg = <0x40410000 0x1000>;
+		interrupts = <1 1>;
+		label = "IPC_CSME";
+		interrupt-parent = <&nvic>;
+		timeout-ms = <1000>;
+		status = "disabled";
+	};
+	ipcpmc: ipc@40411000 {
+		compatible = "intel,sedi-ipc";
+		reg = <0x40411000 0x1000>;
+		interrupts = <2 1>;
+		label = "IPC_PMC";
+		interrupt-parent = <&nvic>;
+		timeout-ms = <5000>;
+		status = "okay";
+	};
 };
 
 &nvic {

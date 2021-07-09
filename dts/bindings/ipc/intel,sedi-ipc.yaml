@@ -1,0 +1,26 @@
+# Copyright (c) 2019-2021 Intel Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+---
+description: INTEL SEDI IPC controller.
+
+compatible: "intel,sedi-ipc"
+
+include: base.yaml
+
+properties:
+    reg:
+      required: true
+
+    label:
+      required: true
+
+    interrupts:
+      required: true
+
+    timeout-ms:
+      type: int
+      required: true
+      description: write timeout in ms
+...
+
