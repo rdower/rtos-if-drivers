@@ -86,7 +86,13 @@ static int config_cpu(void)
 	return 0;
 }
 
-
+#if defined(CONFIG_HPET_TIMER)
+__pinned_func
+void hpet_set_comparator(uint64_t next)
+{
+	sedi_hpet_set_comparator(HPET_0, next);
+}
+#endif
 
 /**
  *
@@ -118,6 +124,10 @@ static int elkhart_lake_pse_init(const struct device *arg)
 	 */
 #if defined(CONFIG_FPGA_GBE_RGMII_PHY_RX) || defined(CONFIG_BOARD_INTEL_EHL_CRB)
 	sedi_pm_set_control(SEDI_PM_IOCTL_TCG_GBE_RGMII_PHY_RX, 1);
+#endif
+
+#if defined(CONFIG_HPET_TIMER)
+	sedi_hpet_set_min_delay(CONFIG_HPET_MIN_DELAY);
 #endif
 
 #ifdef CONFIG_PM_SERVICE

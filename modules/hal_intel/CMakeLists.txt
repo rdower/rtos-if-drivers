@@ -43,6 +43,6 @@ if (CONFIG_HAS_SEDI)
   zephyr_library_sources_ifdef(CONFIG_CAN_SEDI   ${sedi_lib_src_dir}/drivers/can/sedi_driver_can.c)
   zephyr_library_sources(${sedi_lib_src_dir}/drivers/ipc/ipc_bsp.c
     ${sedi_lib_src_dir}/drivers/ipc/fwst.c)
-
+  zephyr_library_sources_ifdef(CONFIG_HPET_TIMER ${sedi_lib_src_dir}/drivers/hpet/sedi_hpet.c)
 
 endif()
