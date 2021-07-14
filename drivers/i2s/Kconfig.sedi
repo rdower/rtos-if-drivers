@@ -1,0 +1,51 @@
+# Kconfig - PSE I2S configuration options
+
+# Copyright (c) 2021 Intel Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+menuconfig I2S_SEDI
+	bool "Intel PSE I2S Bus Driver"
+	depends on SEDI && I2S
+	help
+	  Enable Inter Sound (I2S) bus driver for PSE.
+
+config I2S_SEDI_DMA_NAME
+	string "DMA device name"
+	default "DMA_0"
+	help
+	  Name of the DMA device this device driver can use.
+
+config I2S_TIMESTAMP_EN
+	bool "Time stamp Logging"
+	help
+	  Enable or disable time stamp Logging.
+
+config I2S_SEDI_TX_BLOCK_COUNT
+	depends on I2S_SEDI
+	int "TX queue length"
+	default 16
+	help
+	  The maximum number of blocks that can be accommodated in the Tx queue.
+
+config I2S_SEDI_RX_BLOCK_COUNT
+	depends on I2S_SEDI
+	int "RX queue length"
+	default 16
+	help
+	  The maximum number of blocks that can be accommodated in the Rx queue.
+
+config EN_I2S_POLLED_IO
+	depends on I2S_SEDI
+	bool "Enable Polled read/write"
+	help
+	  Set 1 to Enable Polled read/write.
+
+config DCACHE_I2S_DMA_WRITEBACK
+	depends on I2S_SEDI
+	bool "Enable Cache invalidate support"
+	default y
+	help
+	  Set 1 to Enable Cache invalidate support.
+

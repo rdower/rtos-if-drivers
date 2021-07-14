@@ -16,5 +16,6 @@ rsource "pwm/Kconfig"
 rsource "watchdog/Kconfig"
 rsource "i2c/Kconfig"
 rsource "gpio/Kconfig"
+rsource "i2s/Kconfig"
 
 endmenu

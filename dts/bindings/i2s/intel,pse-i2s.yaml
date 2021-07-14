@@ -1,0 +1,39 @@
+# Copyright (c) 2021, Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+description: I2S controller
+
+compatible: "intel,pse-i2s"
+
+include: [i2s-controller.yaml]
+
+properties:
+    reg:
+      required: true
+    interrupts:
+      required: true
+    peripheral-id:
+      type: int
+      description: I2S driver peripheral id
+      required: true
+    i2s-mode:
+      type: int
+      description: I2S mode 1 = Full Duplex, 0 = Half Duplex
+      required: true
+    dma-tx-channel:
+      type: int
+      description: 0 and 2 tx channel
+      required: true
+    dma-rx-channel:
+      type: int
+      description: 1 and 3 rx channel
+      required: true
+    dma-hwid:
+      type: int
+      description: dma i2s0 and i2s1 hardware id
+      required: true
+    hw-fifo-addr:
+      type: int
+      description: i2s hardware tx and rx fifo address
+      required: true
+

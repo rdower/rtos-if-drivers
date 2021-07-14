@@ -1,0 +1,10 @@
+# Kconfig - I2S (Inter-IC Sound) driver configuration options
+#
+# Copyright (c) 2021 Piotr Mienkowski
+# SPDX-License-Identifier: Apache-2.0
+#
+
+#
+# I2S Drivers
+#
+rsource "Kconfig.sedi"
