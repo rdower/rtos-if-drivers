@@ -19,3 +19,13 @@ properties:
       type: int
       description: peripheral instance for UART
       required: true
+
+    dma-rx-chnl-id:
+      type: int
+      description: peripheral instance for UART
+      required: true
+
+    dma-tx-chnl-id:
+      type: int
+      description: peripheral instance for UART
+      required: true
