@@ -4,7 +4,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include "sedi.h"
 #define LOG_LEVEL CONFIG_SPI_LOG_LEVEL
 #include <logging/log.h>
 LOG_MODULE_REGISTER(spi_sedi);
@@ -12,6 +11,7 @@ LOG_MODULE_REGISTER(spi_sedi);
 #include <errno.h>
 #include <kernel.h>
 #include <drivers/spi.h>
+#include <sedi.h>
 
 #define DT_DRV_COMPAT intel_pse_spi
 
