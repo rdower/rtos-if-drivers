@@ -248,6 +248,14 @@
 		status = "disabled";
 	};
 
+	sideband: sideband@40800000 {
+		compatible = "intel,pse-sideband";
+		reg = <0x40800000 0x1000>;
+		interrupts = <22 2>;
+		label = "SIDEBAND";
+		interrupt-parent = <&nvic>;
+	};
+
 	ipchost: ipc@40400000 {
 		compatible = "intel,sedi-ipc";
 		reg = <0x40400000 0x1000>;

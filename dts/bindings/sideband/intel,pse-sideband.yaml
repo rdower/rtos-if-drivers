@@ -1,0 +1,18 @@
+# Copyright (c) 2021 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+description: INTEL PSE Sideband
+
+compatible: "intel,pse-sideband"
+
+include: [base.yaml]
+
+properties:
+    reg:
+      type: array
+      required: true
+
+    interrupts:
+      type: array
+      required: true
+

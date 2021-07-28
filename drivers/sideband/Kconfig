@@ -1,0 +1,12 @@
+#
+# Copyright (c) 2021 Intel Corporation.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+# Top-level configuration file for SIDEBAND drivers.
+
+menuconfig SIDEBAND
+	bool "SIDEBAND drivers"
+	help
+	  Include SIDEBAND drivers in the system configuration.
