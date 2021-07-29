@@ -16,6 +16,7 @@ if (CONFIG_HAS_INTEL)
   zephyr_library_sources_ifdef(CONFIG_INTEL_UART    ${SRC_DIR}/uart/dw_uart.c)
   zephyr_library_sources_ifdef(CONFIG_INTEL_SPI    ${SRC_DIR}/spi/dw_spi.c)
   zephyr_library_sources_ifdef(CONFIG_INTEL_TGPIO    ${SRC_DIR}/tgpio/intel_tgpio.c)
+  zephyr_library_sources_ifdef(CONFIG_INTEL_PWM    ${SRC_DIR}/pwm/intel_pwm.c)
 endif()
 
 if (CONFIG_HAS_SEDI)

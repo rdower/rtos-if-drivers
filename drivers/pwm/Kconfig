@@ -7,3 +7,4 @@
 #
 
 rsource "Kconfig.sedi"
+rsource "Kconfig.pwm_intel"

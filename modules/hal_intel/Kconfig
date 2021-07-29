@@ -19,6 +19,9 @@ config INTEL_SPI
 config INTEL_TGPIO
 	bool "Enable Time-Aware GPIO driver"
 
+config INTEL_PWM
+	bool "Enable PWM driver"
+
 endmenu
 
 config HAS_SEDI
