@@ -19,5 +19,6 @@ rsource "gpio/Kconfig"
 rsource "i2s/Kconfig"
 rsource "audio/Kconfig"
 rsource "sideband/Kconfig"
+rsource "counter/Kconfig"
 
 endmenu

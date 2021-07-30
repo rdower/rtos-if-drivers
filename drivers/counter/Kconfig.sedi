@@ -1,0 +1,13 @@
+# Kconfig - counter configuration options
+
+#
+# Copyright (c) 2021 Intel Corporation
+#
+# SPDX -License-Identifier: Apache-2.0
+#
+
+menuconfig COUNTER_PWM_SEDI
+	bool "SEDI APB Timer driver"
+	depends on COUNTER && PWM_SEDI
+	help
+	Enable support for DesignWare apb counters in PSE

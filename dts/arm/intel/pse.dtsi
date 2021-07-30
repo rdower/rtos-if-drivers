@@ -289,6 +289,8 @@
 		reg = <0x48400000 0x1000>;
 		peripheral-id = <0>;
 		label = "PWM_0";
+		interrupts = <44 2>;
+		interrupt-parent = <&nvic>;
 		status = "okay";
 	};
 
@@ -296,7 +298,10 @@
 		compatible = "intel,pse-pwm";
 		reg = <0x48401000 0x1000>;
 		peripheral-id = <1>;
+		interrupts = <45 2>;
+		interrupt-parent = <&nvic>;
 		label = "PWM_1";
+		status = "okay";
 	};
 
 	gpio0: gpio@40200000 {

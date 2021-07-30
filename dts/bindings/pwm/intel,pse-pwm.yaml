@@ -12,6 +12,10 @@ properties:
       type: array
       required: true
 
+    interrupts:
+      type: array
+      required: true
+
     peripheral-id:
       type: int
       description: PWM driver peripheral ID

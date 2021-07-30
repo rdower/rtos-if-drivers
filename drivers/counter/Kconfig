@@ -1,0 +1,14 @@
+# Kconfig - counter configuration options
+
+#
+# Copyright (c) 2021 Intel Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+menuconfig COUNTER
+	bool "Counter Drivers"
+	help
+	  Enable support for counter and timer.
+
+rsource "Kconfig.sedi"
