@@ -10,3 +10,11 @@ menuconfig SPI_SEDI
 	bool "SEDI SPI controller driver"
 	help
 	  Enable support for SEDI SPI controllers.
+
+config SPI_INTEL_POLLED_MODE
+	depends on SPI_INTEL
+	bool "USE SPI polled mode synchronous Transfers"
+	default y
+	help
+	 This option enables SPI feature to be used for synchronous
+	 data transfers using polled mode.
