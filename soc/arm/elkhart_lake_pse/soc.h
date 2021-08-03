@@ -232,6 +232,18 @@ static inline uint32_t MISC_SRAM_SIZE_TO_PRG_SIZE(uint32_t size)
 
 #endif  /* CONFIG_ETH_DWC_EQOS */
 
+#ifdef CONFIG_HPET_TIMER
+
+#define HPET_USE_CUSTOM_REG_ACCESS_FUNCS
+void hpet_timer_comparator_set(uint64_t val);
+
+/* COUNTER_CLK_PERIOD (CLK_PERIOD_REG) is in picoseconds (1e-12 sec) */
+#define HPET_COUNTER_CLK_PERIOD		(1000000000000ULL)
+
+#define HPET_CMP_MIN_DELAY		(5)
+#define HPET_INT_LEVEL_TRIGGER
+#endif  /*CONFIG_HPET_TIMER */
+
 #endif  /* !_ASMLANGUAGE */
 
 #ifdef __cplusplus

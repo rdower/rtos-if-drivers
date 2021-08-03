@@ -88,7 +88,7 @@ static int config_cpu(void)
 
 #if defined(CONFIG_HPET_TIMER)
 __pinned_func
-void hpet_set_comparator(uint64_t next)
+void hpet_timer_comparator_set(uint64_t next)
 {
 	sedi_hpet_set_comparator(HPET_0, next);
 }
@@ -127,7 +127,7 @@ static int elkhart_lake_pse_init(const struct device *arg)
 #endif
 
 #if defined(CONFIG_HPET_TIMER)
-	sedi_hpet_set_min_delay(CONFIG_HPET_MIN_DELAY);
+	sedi_hpet_set_min_delay(HPET_CMP_MIN_DELAY);
 #endif
 
 #ifdef CONFIG_PM_SERVICE
