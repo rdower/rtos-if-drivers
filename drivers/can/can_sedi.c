@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#define DT_DRV_COMPAT intel_pse_can
+
 #include <logging/log.h>
 LOG_MODULE_REGISTER(sedi_can, LOG_LEVEL_DBG);
 
@@ -104,10 +106,12 @@ static const struct can_driver_api can_sedi_api_funcs = {
 			MAX_TIMING_PRESCALAR },
 #ifdef CONFIG_CAN_FD_MODE
 	.timing_min_data = { MIN_TIMING_DATA_SJW, MIN_TIMING_DATA_PROP_SEG,
-			     MIN_TIMING_DATA_PHASE_SEG1, MIN_TIMING_DATA_PHASE_SEG2,
+			     MIN_TIMING_DATA_PHASE_SEG1,
+			     MIN_TIMING_DATA_PHASE_SEG2,
 			     MIN_TIMING_DATA_PRESCALAR },
 	.timing_max_data = { MAX_TIMING_DATA_SJW, MAX_TIMING_DATA_PROP_SEG,
-			     MAX_TIMING_DATA_PHASE_SEG1, MAX_TIMING_DATA_PHASE_SEG2,
+			     MAX_TIMING_DATA_PHASE_SEG1,
+			     MAX_TIMING_DATA_PHASE_SEG2,
 			     MAX_TIMING_DATA_PRESCALAR }
 #endif
 
@@ -156,7 +160,8 @@ err:
 }
 
 
-static int can_sedi_set_timing(const struct device *dev, const struct can_timing *timing,
+static int can_sedi_set_timing(const struct device *dev,
+			       const struct can_timing *timing,
 			       const struct can_timing *timing_data)
 {
 	struct  can_bittiming_t arbit_timing = { 0 };
@@ -166,7 +171,8 @@ static int can_sedi_set_timing(const struct device *dev, const struct can_timing
 
 	if (timing) {
 		arbit_timing.sjw = timing->sjw - 1;
-		arbit_timing.phase_seg1 = timing->phase_seg1 + timing->prop_seg - 1;
+		arbit_timing.phase_seg1 = timing->phase_seg1 +
+					  timing->prop_seg - 1;
 		arbit_timing.phase_seg2 = timing->phase_seg2 - 1;
 		arbit_timing.brp = timing->prescaler - 1;
 		sedi_can_set_bitrate(data->id, &arbit_timing);
@@ -199,7 +205,120 @@ static int can_sedi_get_core_clock(const struct device *dev, uint32_t *rate)
 	return 0;
 }
 
-#define DT_DRV_COMPAT intel_pse_can
+#ifdef CONFIG_PM_DEVICE
+static void can_sedi_set_power_state(const struct device *dev,
+				     uint32_t power_state)
+{
+	struct can_sedi_data_t *context = dev->data;
+
+	context->device_power_state = power_state;
+}
+
+static uint32_t can_sedi_get_power_state(const struct device *dev)
+{
+	struct can_sedi_data_t *context = dev->data;
+
+	return context->device_power_state;
+}
+
+static int can_suspend_device(const struct device *dev)
+{
+	struct can_sedi_data_t *drv_data = dev->data;
+	int ret;
+
+	if (pm_device_is_busy(dev)) {
+		return -EBUSY;
+	}
+	ret = sedi_can_set_power(drv_data->id, SEDI_POWER_SUSPEND);
+	if (ret != SEDI_DRIVER_OK) {
+		return -EIO;
+	}
+	can_sedi_set_power_state(dev, PM_DEVICE_STATE_SUSPEND);
+
+	return 0;
+}
+
+static int can_resume_device_from_suspend(const struct device *dev)
+{
+	struct can_sedi_data_t *drv_data = dev->data;
+	int ret;
+
+	if (pm_device_is_busy(dev)) {
+		return -EBUSY;
+	}
+
+	ret = sedi_can_set_power(drv_data->id, SEDI_POWER_FULL);
+	if (ret != SEDI_DRIVER_OK) {
+		return -EIO;
+	}
+
+	can_sedi_set_power_state(dev, PM_DEVICE_STATE_ACTIVE);
+	pm_device_busy_clear(dev);
+	return 0;
+}
+
+static int can_set_device_low_power(const struct device *dev)
+{
+	struct can_sedi_data_t *drv_data = dev->data;
+	int ret;
+
+	if (pm_device_is_busy(dev)) {
+		return -EBUSY;
+	}
+
+	ret = sedi_can_set_power(drv_data->id, SEDI_POWER_LOW);
+	if (ret != SEDI_DRIVER_OK) {
+		return -EIO;
+	}
+	can_sedi_set_power_state(dev, PM_DEVICE_STATE_LOW_POWER);
+
+	return 0;
+}
+
+static int can_set_device_force_suspend(const struct device *dev)
+{
+	struct can_sedi_data_t *drv_data = dev->data;
+	int ret;
+
+	ret = sedi_can_set_power(drv_data->id, SEDI_POWER_FORCE_SUSPEND);
+	if (ret != SEDI_DRIVER_OK) {
+		return -EIO;
+	}
+	can_sedi_set_power_state(dev, PM_DEVICE_STATE_FORCE_SUSPEND);
+	return 0;
+}
+
+static int can_sedi_device_ctrl(const struct device *dev, uint32_t ctrl_command,
+				enum pm_device_state *state)
+{
+	int ret = 0;
+
+	if (ctrl_command == PM_DEVICE_STATE_SET) {
+		switch (*(state)) {
+		case PM_DEVICE_STATE_SUSPEND:
+			ret = can_suspend_device(dev);
+			break;
+		case PM_DEVICE_STATE_ACTIVE:
+			ret = can_resume_device_from_suspend(dev);
+			break;
+		case PM_DEVICE_STATE_LOW_POWER:
+			ret = can_set_device_low_power(dev);
+			break;
+		case PM_DEVICE_STATE_FORCE_SUSPEND:
+			ret = can_set_device_force_suspend(dev);
+			break;
+		default:
+			ret = -ENOTSUP;
+		}
+	} else if (ctrl_command == PM_DEVICE_STATE_GET) {
+		*(state) = can_sedi_get_power_state(dev);
+	}
+
+	return ret;
+}
+#endif /* CONFIG_PM_DEVICE */
+
+
 
 #ifdef CONFIG_CAN_DISABLE_AUTO_RETRANSMIT
 #define DISABLE_AUTO_RETRANS (1)
@@ -222,63 +341,66 @@ static int can_sedi_get_core_clock(const struct device *dev, uint32_t *rate)
 	}
 
 /* Setting configuration and init function. */
-#define CAN_SEDI_DEVICE_INIT(n)							     \
-	static struct can_params_t can_sedi_params_##n = {			     \
-		.bit_timing.phase_seg1 = DT_INST_PROP(n, phase_seg1),		     \
-		.bit_timing.phase_seg2 = DT_INST_PROP(n, phase_seg2),		     \
-		.bit_timing.brp = CONFIG_CAN_BRP,				     \
-		.bit_timing.sjw = DT_INST_PROP(n, sjw),				     \
-		.fast_bit_timing.fast_phase_seg1 = DT_INST_PROP(n, phase_seg1_data), \
-		.fast_bit_timing.fast_phase_seg2 = DT_INST_PROP(n, phase_seg2_data), \
-		.fast_bit_timing.fast_brp = CONFIG_CAN_FAST_BRP,		     \
-		.fast_bit_timing.fast_sjw = DT_INST_PROP(n, sjw_data),		     \
-		.std_filts_cnt = CONFIG_CAN##n##_STD_FILTER_COUNT,		     \
-		.ext_filts_cnt = CONFIG_CAN##n##_EXT_FILTER_COUNT,		     \
-		.rx_fifo0_cnt = CONFIG_CAN##n##_RX_FIFO0_COUNT,			     \
-		.rx_fifo1_cnt = CONFIG_CAN##n##_RX_FIFO1_COUNT,			     \
-		.rx_buf_cnt = CONFIG_CAN##n##_RX_BUF_COUNT,			     \
-		.tx_evt_fifo_cnt = CONFIG_CAN##n##_TX_EVENT_FIFO_COUNT,		     \
-		.tx_buf_cnt = CONFIG_CAN##n##_TX_BUF_COUNT,			     \
-		.tx_fifo_cnt = CONFIG_CAN##n##_TX_FIFO_COUNT,			     \
-		.rx_fifo0_word_size = CONFIG_CAN##n##_RX_FIFO0_SIZE,		     \
-		.rx_fifo1_word_size = CONFIG_CAN##n##_RX_FIFO1_SIZE,		     \
-		.rx_buf_word_size = CONFIG_CAN##n##_RX_BUF_SIZE,		     \
-		.tx_buf_word_size = CONFIG_CAN##n##_TX_BUF_SIZE,		     \
-		.rx_fifo0_wm = CONFIG_CAN##n##_RX_FIFO0_WM,			     \
-		.rx_fifo1_wm = CONFIG_CAN##n##_RX_FIFO1_WM,			     \
-		.tx_evt_fifo_wm = CONFIG_CAN##n##_TX_EVT_FIFO_WM,		     \
-		.gfc_reject = CONFIG_CAN##n##_GFC_REJECT,			     \
-		.gfc_remote_reject = CONFIG_CAN##n##_GFC_REMOTE_REJECT,		     \
-		.time_counter = CONFIG_CAN##n##_TIME_COUNT,			     \
-		.rx_fifo_mode = CAN_FIFO_OVERWRITE,				     \
-		.disable_auto_retransmit = DISABLE_AUTO_RETRANS			     \
-	};									     \
-	CAN_IRQ_HANDLER_DECL(n);						     \
-	static struct can_sedi_config_t config_info_##n = {			     \
-		.params = &can_sedi_params_##n,					     \
-		.config_irq = &can_sedi_config_irq_##n,				     \
-	};									     \
-	static struct can_sedi_data_t can_sedi_drv_data_##n = {			     \
-		.id = CAN_##n,							     \
-	};									     \
-	DEVICE_DEFINE(can_##n, DT_INST_LABEL(n),				     \
-		      &can_sedi_init,						     \
-		      NULL,							     \
-		      &can_sedi_drv_data_##n,					     \
-		      &config_info_##n, POST_KERNEL,				     \
-		      CONFIG_KERNEL_INIT_PRIORITY_DEVICE,			     \
-		      &can_sedi_api_funcs);					     \
-	int CAN##n##_MAX_FILTER = CONFIG_CAN##n##_STD_FILTER_COUNT		     \
-				  + CONFIG_CAN##n##_EXT_FILTER_COUNT;		     \
-	static struct filter_data_t						     \
-		can##n##_filter_list[CONFIG_CAN##n##_STD_FILTER_COUNT		     \
-				     + CONFIG_CAN##n##_EXT_FILTER_COUNT];	     \
-	static struct can_mailbox mb##n;					     \
+#define CAN_SEDI_DEVICE_INIT(n)							  \
+	static struct can_params_t can_sedi_params_##n = {			  \
+		.bit_timing.phase_seg1 = DT_INST_PROP(n, phase_seg1),		  \
+		.bit_timing.phase_seg2 = DT_INST_PROP(n, phase_seg2),		  \
+		.bit_timing.brp = CONFIG_CAN_BRP,				  \
+		.bit_timing.sjw = DT_INST_PROP(n, sjw),				  \
+		.fast_bit_timing.fast_phase_seg1 = DT_INST_PROP(n,		  \
+								phase_seg1_data), \
+		.fast_bit_timing.fast_phase_seg2 = DT_INST_PROP(n,		  \
+								phase_seg2_data), \
+		.fast_bit_timing.fast_brp = CONFIG_CAN_FAST_BRP,		  \
+		.fast_bit_timing.fast_sjw = DT_INST_PROP(n, sjw_data),		  \
+		.std_filts_cnt = CONFIG_CAN##n##_STD_FILTER_COUNT,		  \
+		.ext_filts_cnt = CONFIG_CAN##n##_EXT_FILTER_COUNT,		  \
+		.rx_fifo0_cnt = CONFIG_CAN##n##_RX_FIFO0_COUNT,			  \
+		.rx_fifo1_cnt = CONFIG_CAN##n##_RX_FIFO1_COUNT,			  \
+		.rx_buf_cnt = CONFIG_CAN##n##_RX_BUF_COUNT,			  \
+		.tx_evt_fifo_cnt = CONFIG_CAN##n##_TX_EVENT_FIFO_COUNT,		  \
+		.tx_buf_cnt = CONFIG_CAN##n##_TX_BUF_COUNT,			  \
+		.tx_fifo_cnt = CONFIG_CAN##n##_TX_FIFO_COUNT,			  \
+		.rx_fifo0_word_size = CONFIG_CAN##n##_RX_FIFO0_SIZE,		  \
+		.rx_fifo1_word_size = CONFIG_CAN##n##_RX_FIFO1_SIZE,		  \
+		.rx_buf_word_size = CONFIG_CAN##n##_RX_BUF_SIZE,		  \
+		.tx_buf_word_size = CONFIG_CAN##n##_TX_BUF_SIZE,		  \
+		.rx_fifo0_wm = CONFIG_CAN##n##_RX_FIFO0_WM,			  \
+		.rx_fifo1_wm = CONFIG_CAN##n##_RX_FIFO1_WM,			  \
+		.tx_evt_fifo_wm = CONFIG_CAN##n##_TX_EVT_FIFO_WM,		  \
+		.gfc_reject = CONFIG_CAN##n##_GFC_REJECT,			  \
+		.gfc_remote_reject = CONFIG_CAN##n##_GFC_REMOTE_REJECT,		  \
+		.time_counter = CONFIG_CAN##n##_TIME_COUNT,			  \
+		.rx_fifo_mode = CAN_FIFO_OVERWRITE,				  \
+		.disable_auto_retransmit = DISABLE_AUTO_RETRANS			  \
+	};									  \
+	CAN_IRQ_HANDLER_DECL(n);						  \
+	static struct can_sedi_config_t config_info_##n = {			  \
+		.params = &can_sedi_params_##n,					  \
+		.config_irq = &can_sedi_config_irq_##n,				  \
+	};									  \
+	static struct can_sedi_data_t can_sedi_drv_data_##n = {			  \
+		.id = CAN_##n,							  \
+	};									  \
+	DEVICE_DEFINE(can_##n, DT_INST_LABEL(n),				  \
+		      &can_sedi_init,						  \
+		      &can_sedi_device_ctrl,					  \
+		      &can_sedi_drv_data_##n,					  \
+		      &config_info_##n, POST_KERNEL,				  \
+		      CONFIG_KERNEL_INIT_PRIORITY_DEVICE,			  \
+		      &can_sedi_api_funcs);					  \
+	int CAN##n##_MAX_FILTER = CONFIG_CAN##n##_STD_FILTER_COUNT		  \
+				  + CONFIG_CAN##n##_EXT_FILTER_COUNT;		  \
+	static struct filter_data_t						  \
+		can##n##_filter_list[CONFIG_CAN##n##_STD_FILTER_COUNT		  \
+				     + CONFIG_CAN##n##_EXT_FILTER_COUNT];	  \
+	static struct can_mailbox mb##n;					  \
 	CAN_IRQ_HANDLER_DEFINE(n)
 
 DT_INST_FOREACH_STATUS_OKAY(CAN_SEDI_DEVICE_INIT)
 
-int32_t register_parity_callback(const struct device *dev, can_parity_callback_t cb)
+int32_t register_parity_callback(const struct device *dev,
+				 can_parity_callback_t cb)
 {
 	int32_t ret = SEDI_DRIVER_OK;
 	struct can_sedi_data_t *data = DEV_DATA(dev);
@@ -333,7 +455,7 @@ static void handle_rx_event(enum can_id id, uint32_t val, void *data)
 		state = irq_lock();
 		if (can0_filter_list[filter_index].cb) {
 			can0_filter_list[filter_index].cb(&msg,
-							  can0_filter_list[filter_index].cb_arg);
+				can0_filter_list[filter_index].cb_arg);
 		}
 
 		irq_unlock(state);
@@ -341,7 +463,7 @@ static void handle_rx_event(enum can_id id, uint32_t val, void *data)
 		state = irq_lock();
 		if (can1_filter_list[filter_index].cb) {
 			can1_filter_list[filter_index].cb(&msg,
-							  can1_filter_list[filter_index].cb_arg);
+				can1_filter_list[filter_index].cb_arg);
 		}
 
 		irq_unlock(state);
@@ -368,7 +490,7 @@ static void handle_tx_event(enum can_id id, uint32_t val, void *data)
 		if ((mail_box != NULL) && (mail_box->tx_callback != NULL)) {
 			mail_box->tx_callback(CAN_TX_OK, mail_box->cb_arg);
 			if (!drv_data->attached_filter_count) {
-				device_busy_clear(can_dev_list[id]);
+				pm_device_busy_clear(can_dev_list[id]);
 			}
 		} else {
 			drv_data->tx_err = CAN_TX_OK;
@@ -417,7 +539,7 @@ static void handle_tx_event(enum can_id id, uint32_t val, void *data)
 		if ((mail_box != NULL) && mail_box->tx_callback) {
 			mail_box->tx_callback(err, mail_box->cb_arg);
 			if (!drv_data->attached_filter_count) {
-				device_busy_clear(can_dev_list[id]);
+				pm_device_busy_clear(can_dev_list[id]);
 			}
 		} else {
 			drv_data->tx_err = err;
@@ -561,13 +683,13 @@ int can_sedi_send(const struct device *dev, const struct zcan_frame *msg,
 		k_sem_reset(sync_tx_sem);
 	}
 
-	device_busy_set(dev);
+	pm_device_busy_set(dev);
 	ret = sedi_can_send_message(drv_data->id, msg->id_type,
 				    (void *)&frame);
 	if (ret < 0) {
 		ret = CAN_TX_ERR;
 		if (!drv_data->attached_filter_count) {
-			device_busy_clear(dev);
+			pm_device_busy_clear(dev);
 		}
 		goto err;
 	}
@@ -576,7 +698,7 @@ int can_sedi_send(const struct device *dev, const struct zcan_frame *msg,
 		k_sem_take(sync_tx_sem, K_FOREVER);
 		ret = drv_data->tx_err;
 		if (!drv_data->attached_filter_count) {
-			device_busy_clear(dev);
+			pm_device_busy_clear(dev);
 		}
 	}
 err:
@@ -643,12 +765,12 @@ static int can_sedi_check_avilable_filter(const struct device *dev,
 
 	if (drv_data->id == CAN_0) {
 		filter_nr = can_sedi_get_free_filter_index(drv_data->id,
-				(struct filter_data_t *)&can0_filter_list,
-				 msg_id);
+					(struct filter_data_t *)&can0_filter_list,
+					 msg_id);
 	} else {
 		filter_nr = can_sedi_get_free_filter_index(drv_data->id,
-				(struct filter_data_t *)&can1_filter_list,
-				 msg_id);
+					(struct filter_data_t *)&can1_filter_list,
+					 msg_id);
 	}
 	k_sem_give(&g_sem);
 	return filter_nr;
@@ -712,7 +834,7 @@ int can_sedi_attach_isr(const struct device *dev, can_rx_callback_t isr,
 	}
 
 	if (drv_data->attached_filter_count == 0) {
-		device_busy_set(dev);
+		pm_device_busy_set(dev);
 	}
 	drv_data->attached_filter_count++;
 	if (drv_data->id == CAN_0) {
@@ -759,19 +881,21 @@ void can_sedi_detach(const struct device *dev, int filter_nr)
 	if (drv_data->id == CAN_0) {
 		can0_filter_list[filter_nr].configured = 0;
 		can0_filter_list[filter_nr].cb = NULL;
-		sedi_can_config_filter(drv_data->id, &filter,
+		sedi_can_config_filter(drv_data->id,
+				       &filter,
 				       can0_filter_list[filter_nr].filter_id_type);
 	} else {
 		can1_filter_list[filter_nr].configured = 0;
 		can1_filter_list[filter_nr].cb = NULL;
-		sedi_can_config_filter(drv_data->id, &filter,
+		sedi_can_config_filter(drv_data->id,
+				       &filter,
 				       can1_filter_list[filter_nr].filter_id_type);
 	}
 
 	drv_data->attached_filter_count--;
 	if (drv_data->attached_filter_count <= 0) {
 		drv_data->attached_filter_count = 0;
-		device_busy_clear(dev);
+		pm_device_busy_clear(dev);
 	}
 	k_sem_give(&g_sem);
 	k_sem_give(&(drv_data->set_filter_sem));
@@ -920,6 +1044,7 @@ static void can_sedi_isr(void *arg)
 
 	sedi_can_isr(can_dev->id);
 }
+
 
 #ifdef CONFIG_NET_SOCKETS_CAN
 #include "../drivers/can/socket_can_generic.h"

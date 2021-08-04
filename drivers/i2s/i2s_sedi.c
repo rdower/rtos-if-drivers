@@ -108,9 +108,11 @@ struct stream {
 	uint32_t stop_time;
 #endif
 	struct k_sem dma_stop_alert;
-	int (*stream_start)(struct stream *stream, struct i2s_sedi_dev_data *dev_data,
+	int (*stream_start)(struct stream *stream,
+			    struct i2s_sedi_dev_data *dev_data,
 			    struct device *dev);
-	void (*stream_disable)(struct stream *stream, struct i2s_sedi_dev_data *dev_data,
+	void (*stream_disable)(struct stream *stream,
+			       struct i2s_sedi_dev_data *dev_data,
 			       struct device *dev);
 	void (*queue_drop)(struct stream *stream);
 };
@@ -130,6 +132,9 @@ struct i2s_sedi_dev_data {
 	struct device *dev_dma;
 	struct stream tx;
 	struct stream rx;
+#ifdef CONFIG_PM_DEVICE
+	uint32_t device_power_state;
+#endif
 };
 
 /* DMA context */
@@ -197,6 +202,123 @@ static struct device *get_dev_from_dma_channel(uint32_t dma_channel)
 	}
 
 	return NULL;
+}
+#endif
+
+#ifdef CONFIG_PM_DEVICE
+
+static void i2s_sedi_set_power_state(const struct device *dev,
+				     uint32_t power_state)
+{
+	struct i2s_sedi_dev_data *context = dev->data;
+
+	context->device_power_state = power_state;
+}
+
+static uint32_t i2s_sedi_get_power_state(const struct device *dev)
+{
+	struct i2s_sedi_dev_data *context = dev->data;
+
+	return context->device_power_state;
+}
+
+static int i2s_suspend_device(const struct device *dev)
+{
+	struct i2s_sedi_dev_data *const dev_data = DEV_DATA(dev);
+
+	if (pm_device_is_busy(dev)) {
+		return -EBUSY;
+	}
+
+	int ret =
+		sedi_i2s_set_power(dev_data->dev_instance, SEDI_POWER_SUSPEND);
+
+	if (ret != SEDI_DRIVER_OK) {
+		return -EIO;
+	}
+
+	i2s_sedi_set_power_state(dev, PM_DEVICE_STATE_SUSPEND);
+
+	return 0;
+}
+
+static int i2s_resume_device_from_suspend(const struct device *dev)
+{
+	struct i2s_sedi_dev_data *const dev_data = DEV_DATA(dev);
+	int ret;
+
+	ret = sedi_i2s_set_power(dev_data->dev_instance, SEDI_POWER_FULL);
+	if (ret != SEDI_DRIVER_OK) {
+		return -EIO;
+	}
+
+	i2s_sedi_set_power_state(dev, PM_DEVICE_STATE_ACTIVE);
+	pm_device_busy_clear(dev);
+
+	return 0;
+}
+
+static int i2s_set_device_low_power(const struct device *dev)
+{
+	struct i2s_sedi_dev_data *const dev_data = DEV_DATA(dev);
+
+	if (pm_device_is_busy(dev)) {
+		return -EBUSY;
+	}
+
+	int ret;
+
+	ret = sedi_i2s_set_power(dev_data->dev_instance, SEDI_POWER_LOW);
+	if (ret != SEDI_DRIVER_OK) {
+		return -EIO;
+	}
+
+	i2s_sedi_set_power_state(dev, PM_DEVICE_STATE_LOW_POWER);
+	return 0;
+}
+
+static int i2s_set_device_force_suspend(const struct device *dev)
+{
+	struct i2s_sedi_dev_data *const dev_data = DEV_DATA(dev);
+	int ret;
+
+	ret = sedi_i2s_set_power(dev_data->dev_instance,
+				 SEDI_POWER_FORCE_SUSPEND);
+	if (ret != SEDI_DRIVER_OK) {
+		return -EIO;
+	}
+	i2s_sedi_set_power_state(dev, PM_DEVICE_STATE_FORCE_SUSPEND);
+	return 0;
+}
+
+static int i2s_sedi_device_ctrl(const struct device *dev, uint32_t ctrl_command,
+				enum pm_device_state *state)
+{
+	int ret = 0;
+
+	if (ctrl_command == PM_DEVICE_STATE_SET) {
+
+		switch (*(state)) {
+		case PM_DEVICE_STATE_SUSPEND:
+			ret = i2s_suspend_device(dev);
+			break;
+		case PM_DEVICE_STATE_ACTIVE:
+			ret = i2s_resume_device_from_suspend(dev);
+			break;
+		case PM_DEVICE_STATE_LOW_POWER:
+			ret = i2s_set_device_low_power(dev);
+			break;
+		case PM_DEVICE_STATE_FORCE_SUSPEND:
+			ret = i2s_set_device_force_suspend(dev);
+			break;
+		default:
+			ret = -ENOTSUP;
+		}
+	} else if (ctrl_command == PM_DEVICE_STATE_GET) {
+		*(state) = i2s_sedi_get_power_state(dev);
+	}
+
+	return ret;
 }
 #endif
 
@@ -358,7 +480,8 @@ static int start_dma(struct i2s_sedi_dev_data *dev_data,
 
 /* This function is executed in the interrupt context */
 #if ZEPHYR_DMA_DRV
-static void dma_rx_callback(struct device *dev_dma, uint32_t channel, int status)
+static void dma_rx_callback(struct device *dev_dma, uint32_t channel,
+			    int status)
 {
 	struct device *dev = get_dev_from_dma_channel(channel);
 	struct i2s_sedi_dev_data *const dev_data = DEV_DATA(dev);
@@ -406,7 +529,8 @@ static void dma_rx_callback(sedi_dma_t dma_device, int channel_id, int event,
 	/* Stop reception if we were requested */
 	if (stream->state == I2S_STATE_STOPPING) {
 		stream->state = I2S_STATE_READY;
-		I2S_LOG_ERR("Stream state != I2S_STATE_STOPPING and so stopping capture!\n");
+		I2S_LOG_ERR(
+			"Stream state != I2S_STATE_STOPPING and so stopping capture!\n");
 		goto rx_disable;
 	}
 
@@ -445,7 +569,8 @@ rx_disable:
 
 /* This function is executed in the interrupt context */
 #if ZEPHYR_DMA_DRV
-static void dma_tx_callback(struct device *dev_dma, uint32_t channel, int status)
+static void dma_tx_callback(struct device *dev_dma, uint32_t channel,
+			    int status)
 {
 	struct device *dev = get_dev_from_dma_channel(channel);
 	const struct i2s_sedi_config *const dev_cfg = DEV_CFG(dev);
@@ -963,6 +1088,10 @@ static int i2s_sedi_trigger(const struct device *dev, enum i2s_dir dir,
 #else
 		sedi_enable_transceiver(dev_data->dev_instance);
 #endif
+
+#ifdef CONFIG_PM_DEVICE
+		pm_device_busy_set(dev);
+#endif
 		strm->state = I2S_STATE_RUNNING;
 		strm->last_block = false;
 		break;
@@ -980,7 +1109,9 @@ static int i2s_sedi_trigger(const struct device *dev, enum i2s_dir dir,
 		strm->last_block = true;
 #if !defined(CONFIG_EN_I2S_POLLED_IO)
 		/* Wait for last DMA transfer to complete. */
-		ret = k_sem_take(&strm->dma_stop_alert, SYS_TIMEOUT_MS(strm->cfg.timeout));
+		ret =
+			k_sem_take(&strm->dma_stop_alert,
+				   SYS_TIMEOUT_MS(strm->cfg.timeout));
 		if (ret != 0) {
 			return ret;
 		}
@@ -1014,6 +1145,9 @@ static int i2s_sedi_trigger(const struct device *dev, enum i2s_dir dir,
 		sedi_disable_transceiver(dev_data->dev_instance);
 #endif
 		strm->state = I2S_STATE_READY;
+#ifdef CONFIG_PM_DEVICE
+		pm_device_busy_clear(dev);
+#endif
 		break;
 
 	case I2S_TRIGGER_PREPARE:
@@ -1033,7 +1167,9 @@ static int i2s_sedi_trigger(const struct device *dev, enum i2s_dir dir,
 	return 0;
 }
 
-static int i2s_sedi_read(const struct device *dev, void **mem_block, size_t *size)
+static int i2s_sedi_read(const struct device *dev,
+			 void **mem_block,
+			 size_t *size)
 {
 	I2S_LOG_TRACE("%s\n", __func__);
 	struct i2s_sedi_dev_data *const dev_data = DEV_DATA(dev);
@@ -1056,7 +1192,9 @@ static int i2s_sedi_read(const struct device *dev, void **mem_block, size_t *siz
 		return -EIO;
 	}
 #else
-	ret = k_sem_take(&dev_data->rx.sem, SYS_TIMEOUT_MS(dev_data->rx.cfg.timeout));
+	ret =
+		k_sem_take(&dev_data->rx.sem,
+			   SYS_TIMEOUT_MS(dev_data->rx.cfg.timeout));
 	if (ret < 0) {
 		I2S_LOG_ERR("Failure taking sem");
 		return ret;
@@ -1069,7 +1207,8 @@ static int i2s_sedi_read(const struct device *dev, void **mem_block, size_t *siz
 #endif
 	return 0;
 }
-static int i2s_sedi_write(const struct device *dev, void *mem_block, size_t size)
+static int i2s_sedi_write(const struct device *dev, void *mem_block,
+			  size_t size)
 {
 	I2S_LOG_TRACE("%s\n", __func__);
 
@@ -1086,7 +1225,9 @@ static int i2s_sedi_write(const struct device *dev, void *mem_block, size_t size
 	__ASSERT_NO_MSG(mem_block != NULL && size != 0);
 
 #if !defined(CONFIG_EN_I2S_POLLED_IO)
-	ret = k_sem_take(&dev_data->tx.sem, SYS_TIMEOUT_MS(dev_data->tx.cfg.timeout));
+	ret =
+		k_sem_take(&dev_data->tx.sem,
+			   SYS_TIMEOUT_MS(dev_data->tx.cfg.timeout));
 	if (ret < 0) {
 		I2S_LOG_ERR("Failure taking sem");
 		return ret;
@@ -1166,6 +1307,9 @@ static int i2s_sedi_initialize(const struct device *dev)
 	/* Enable module's IRQ */
 	irq_enable(dev_cfg->irq_id);
 
+#ifdef CONFIG_PM_DEVICE
+	sedi_i2s_set_power(dev_data->dev_instance, SEDI_POWER_FULL);
+#endif
 	LOG_INF("Device %s initialized", DEV_NAME(dev));
 	return 0;
 }
@@ -1179,90 +1323,95 @@ static const struct i2s_driver_api i2s_sedi_driver_api = {
 };
 
 #if ZEPHYR_DMA_DRV
-#define CREATE_I2S_INSTANCE(num)							 \
-	DEVICE_DECLARE(i2s_##num);							 \
-	struct queue_item								 \
-		i2s##num##_tx_ring_buf[CONFIG_I2S_SEDI_TX_BLOCK_COUNT];			 \
-	struct queue_item								 \
-		i2s##num##_rx_ring_buf[CONFIG_I2S_SEDI_RX_BLOCK_COUNT];			 \
-											 \
-	static void i2s##num##_irq_config(void)						 \
-	{										 \
-		I2S_LOG_TRACE("%s\n", __func__);					 \
-		IRQ_CONNECT(DT_INST_IRQN(num),						 \
-			    DT_INST_IRQ(num, priority), i2s_sedi_isr,			 \
-			    DEVICE_GET(i2s_##num), 0);					 \
-	}										 \
-											 \
-	static const struct i2s_sedi_config i2s##num##_sedi_config = {			 \
-		.irq_id = DT_INST_IRQN(num),						 \
-		.irq_config = i2s##num##_irq_config,					 \
-	};										 \
-											 \
-	static struct i2s_sedi_dev_data i2s##num##_sedi_data = {			 \
-		.dev_instance = DT_INST_PROP(num, peripheral_id),			 \
-		.i2s_mode = DT_INST_PROP(num, i2s_mode),				 \
-		.tx =									 \
-		{									 \
-			.dma_channel = DT_INST_PROP(num, dma_tx_channel),		 \
-			.dma_cfg =							 \
-			{								 \
-				.source_data_size = I2S_DATA_WIDTH_1B,			 \
-				.dest_data_size = I2S_DATA_WIDTH_1B,			 \
-				.source_burst_length =					 \
-					I2S_DMA_SRC_BURST_LEN,				 \
-				.dest_burst_length =					 \
-					I2S_DMA_DST_BURST_LEN,				 \
-				.dma_callback = dma_tx_callback,			 \
-				.complete_callback_en = TRUE,				 \
-				.error_callback_en = TRUE,				 \
-				.block_count = I2S_DMA_BLOCK_CNT,			 \
-				.channel_direction = MEMORY_TO_PERIPHERAL,		 \
-				.reserved = DT_INST_PROP(num, dma_hwid),		 \
-			},								 \
-			.mem_block_queue.buf = i2s##num##_tx_ring_buf,			 \
-			.mem_block_queue.len =						 \
-				ARRAY_SIZE(i2s##num##_tx_ring_buf),			 \
-			.stream_start = tx_stream_start,				 \
-			.stream_disable = tx_stream_disable,				 \
-			.queue_drop = tx_queue_drop,					 \
-			.state = I2S_STATE_NOT_READY,					 \
-			.hw_fifo = DT_INST_PROP(num, hw_fifo_addr),			 \
-		},									 \
-		.rx =									 \
-		{									 \
-			.dma_channel =							 \
-				DT_INST_PROP(num, dma_rx_channel),			 \
-			.dma_cfg =							 \
-			{								 \
-				.source_data_size = I2S_DATA_WIDTH_1B,			 \
-				.dest_data_size = I2S_DATA_WIDTH_1B,			 \
-				.source_burst_length =					 \
-					I2S_DMA_SRC_BURST_LEN,				 \
-				.dest_burst_length =					 \
-					I2S_DMA_DST_BURST_LEN,				 \
-				.dma_callback = dma_rx_callback,			 \
-				.complete_callback_en = TRUE,				 \
-				.error_callback_en = TRUE,				 \
-				.block_count = I2S_DMA_BLOCK_CNT,			 \
-				.channel_direction = PERIPHERAL_TO_MEMORY,		 \
-				.reserved = DT_INST_PROP(num, dma_hwid),		 \
-			},								 \
-			.mem_block_queue.buf = i2s##num##_rx_ring_buf,			 \
-			.mem_block_queue.len =						 \
-				ARRAY_SIZE(i2s##num##_rx_ring_buf),			 \
-			.stream_start = rx_stream_start,				 \
-			.stream_disable = rx_stream_disable,				 \
-			.queue_drop = rx_queue_drop,					 \
-			.state = I2S_STATE_NOT_READY,					 \
-			.hw_fifo = DT_INST_PROP(num, hw_fifo_addr),			 \
-		},									 \
-	};										 \
-											 \
-	DEVICE_DEFINE(i2s_##num, DT_INST_LABEL(num),					 \
-		      &i2s_sedi_initialize, i2s_sedi_device_ctrl, &i2s##num##_sedi_data, \
-		      &i2s##num##_sedi_config, POST_KERNEL,				 \
-		      CONFIG_I2S_INIT_PRIORITY, &i2s_sedi_driver_api);
+#define CREATE_I2S_INSTANCE(num)					   \
+	DEVICE_DECLARE(i2s_##num);					   \
+	struct queue_item						   \
+		i2s##num##_tx_ring_buf[CONFIG_I2S_SEDI_TX_BLOCK_COUNT];	   \
+	struct queue_item						   \
+		i2s##num##_rx_ring_buf[CONFIG_I2S_SEDI_RX_BLOCK_COUNT];	   \
+									   \
+	static void i2s##num##_irq_config(void)				   \
+	{								   \
+		I2S_LOG_TRACE("%s\n", __func__);			   \
+		IRQ_CONNECT(DT_INST_IRQN(num),				   \
+			    DT_INST_IRQ(num, priority), i2s_sedi_isr,	   \
+			    DEVICE_GET(i2s_##num), 0);			   \
+	}								   \
+									   \
+	static const struct i2s_sedi_config i2s##num##_sedi_config = {	   \
+		.irq_id = DT_INST_IRQN(num),				   \
+		.irq_config = i2s##num##_irq_config,			   \
+	};								   \
+									   \
+	static struct i2s_sedi_dev_data i2s##num##_sedi_data = {	   \
+		.dev_instance = DT_INST_PROP(num, peripheral_id),	   \
+		.i2s_mode = DT_INST_PROP(num, i2s_mode),		   \
+		.tx =							   \
+		{							   \
+			.dma_channel = DT_INST_PROP(num, dma_tx_channel),  \
+			.dma_cfg =					   \
+			{						   \
+				.source_data_size = I2S_DATA_WIDTH_1B,	   \
+				.dest_data_size = I2S_DATA_WIDTH_1B,	   \
+				.source_burst_length =			   \
+					I2S_DMA_SRC_BURST_LEN,		   \
+				.dest_burst_length =			   \
+					I2S_DMA_DST_BURST_LEN,		   \
+				.dma_callback = dma_tx_callback,	   \
+				.complete_callback_en = TRUE,		   \
+				.error_callback_en = TRUE,		   \
+				.block_count = I2S_DMA_BLOCK_CNT,	   \
+				.channel_direction = MEMORY_TO_PERIPHERAL, \
+				.reserved = DT_INST_PROP(num, dma_hwid),   \
+			},						   \
+			.mem_block_queue.buf = i2s##num##_tx_ring_buf,	   \
+			.mem_block_queue.len =				   \
+				ARRAY_SIZE(i2s##num##_tx_ring_buf),	   \
+			.stream_start = tx_stream_start,		   \
+			.stream_disable = tx_stream_disable,		   \
+			.queue_drop = tx_queue_drop,			   \
+			.state = I2S_STATE_NOT_READY,			   \
+			.hw_fifo = DT_INST_PROP(num, hw_fifo_addr),	   \
+		},							   \
+		.rx =							   \
+		{							   \
+			.dma_channel =					   \
+				DT_INST_PROP(num, dma_rx_channel),	   \
+			.dma_cfg =					   \
+			{						   \
+				.source_data_size = I2S_DATA_WIDTH_1B,	   \
+				.dest_data_size = I2S_DATA_WIDTH_1B,	   \
+				.source_burst_length =			   \
+					I2S_DMA_SRC_BURST_LEN,		   \
+				.dest_burst_length =			   \
+					I2S_DMA_DST_BURST_LEN,		   \
+				.dma_callback = dma_rx_callback,	   \
+				.complete_callback_en = TRUE,		   \
+				.error_callback_en = TRUE,		   \
+				.block_count = I2S_DMA_BLOCK_CNT,	   \
+				.channel_direction = PERIPHERAL_TO_MEMORY, \
+				.reserved = DT_INST_PROP(num, dma_hwid),   \
+			},						   \
+			.mem_block_queue.buf = i2s##num##_rx_ring_buf,	   \
+			.mem_block_queue.len =				   \
+				ARRAY_SIZE(i2s##num##_rx_ring_buf),	   \
+			.stream_start = rx_stream_start,		   \
+			.stream_disable = rx_stream_disable,		   \
+			.queue_drop = rx_queue_drop,			   \
+			.state = I2S_STATE_NOT_READY,			   \
+			.hw_fifo = DT_INST_PROP(num, hw_fifo_addr),	   \
+		},							   \
+	};								   \
+									   \
+	DEVICE_DEFINE(i2s_##num,					   \
+		      DT_INST_LABEL(num),				   \
+		      &i2s_sedi_initialize,				   \
+		      i2s_sedi_device_ctrl,				   \
+		      &i2s##num##_sedi_data,				   \
+		      &i2s##num##_sedi_config,				   \
+		      POST_KERNEL,					   \
+		      CONFIG_I2S_INIT_PRIORITY,				   \
+		      &i2s_sedi_driver_api);
 #else
 #define CREATE_I2S_INSTANCE(num)					       \
 	DEVICE_DECLARE(i2s_##num);					       \
@@ -1347,7 +1496,9 @@ static const struct i2s_driver_api i2s_sedi_driver_api = {
 	};								       \
 									       \
 	DEVICE_DEFINE(i2s_##num, DT_INST_LABEL(num),			       \
-		      &i2s_sedi_initialize, NULL, &i2s##num##_sedi_data,       \
+		      &i2s_sedi_initialize,				       \
+		      &i2s_sedi_device_ctrl,				       \
+		      &i2s##num##_sedi_data,				       \
 		      &i2s##num##_sedi_config, POST_KERNEL,		       \
 		      CONFIG_I2S_INIT_PRIORITY, &i2s_sedi_driver_api);
 #endif

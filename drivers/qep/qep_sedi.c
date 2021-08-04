@@ -57,7 +57,7 @@
 									 \
 	DEVICE_DEFINE(qep_##n, DT_INST_LABEL(n),			 \
 		      &qep_sedi_init,					 \
-		      NULL,						 \
+		      &qep_sedi_device_ctrl,				 \
 		      &drv_data_qep##n, &config_info_qep_##n,		 \
 		      POST_KERNEL,					 \
 		      CONFIG_KERNEL_INIT_PRIORITY_DEVICE, &api);	 \
@@ -73,7 +73,121 @@ struct qep_sedi_config_info {
 struct qep_sedi_drv_data {
 	qep_callback_t user_cb;
 	void *user_param;
+#ifdef CONFIG_PM_DEVICE
+	uint32_t device_power_state;
+#endif
 };
+
+#ifdef CONFIG_PM_DEVICE
+
+static void qep_sedi_set_power_state(const struct device *dev,
+				     uint32_t power_state)
+{
+	struct qep_sedi_drv_data *context = dev->data;
+
+	context->device_power_state = power_state;
+}
+
+static uint32_t qep_sedi_get_power_state(const struct device *dev)
+{
+	struct qep_sedi_drv_data *context = dev->data;
+
+	return context->device_power_state;
+}
+
+static int qep_suspend_device(const struct device *dev)
+{
+	const struct qep_sedi_config_info *config = dev->config;
+	int ret;
+
+	if (pm_device_is_busy(dev)) {
+		return -EBUSY;
+	}
+
+	ret = sedi_qep_set_power(config->instance, SEDI_POWER_SUSPEND);
+	if (ret != SEDI_DRIVER_OK) {
+		return -EIO;
+	}
+	qep_sedi_set_power_state(dev, PM_DEVICE_STATE_SUSPEND);
+
+	return ret;
+}
+
+static int qep_resume_device_from_suspend(const struct device *dev)
+{
+	const struct qep_sedi_config_info *config = dev->config;
+	int ret;
+
+	ret = sedi_qep_set_power(config->instance, SEDI_POWER_FULL);
+	if (ret != SEDI_DRIVER_OK) {
+		return -EIO;
+	}
+	qep_sedi_set_power_state(dev, PM_DEVICE_STATE_ACTIVE);
+	pm_device_busy_clear(dev);
+
+	return ret;
+}
+
+static int qep_set_device_low_power(const struct device *dev)
+{
+	const struct qep_sedi_config_info *config = dev->config;
+	int ret;
+
+	if (pm_device_is_busy(dev)) {
+		return -EBUSY;
+	}
+
+	ret = sedi_qep_set_power(config->instance, SEDI_POWER_LOW);
+	if (ret != SEDI_DRIVER_OK) {
+		return -EIO;
+	}
+	qep_sedi_set_power_state(dev, PM_DEVICE_STATE_LOW_POWER);
+	return ret;
+}
+
+static int qep_set_device_force_suspend(const struct device *dev)
+{
+	const struct qep_sedi_config_info *config = dev->config;
+	int ret;
+
+	ret = sedi_qep_set_power(config->instance, SEDI_POWER_FORCE_SUSPEND);
+	if (ret != SEDI_DRIVER_OK) {
+		return -EIO;
+	}
+	qep_sedi_set_power_state(dev, PM_DEVICE_STATE_FORCE_SUSPEND);
+	return ret;
+}
+
+static int qep_sedi_device_ctrl(const struct device *dev, uint32_t ctrl_command,
+				enum pm_device_state *state)
+{
+	int ret = 0;
+
+	if (ctrl_command == PM_DEVICE_STATE_SET) {
+		switch (*(state)) {
+		case PM_DEVICE_STATE_SUSPEND:
+			ret = qep_suspend_device(dev);
+			break;
+		case PM_DEVICE_STATE_ACTIVE:
+			ret = qep_resume_device_from_suspend(dev);
+			break;
+		case PM_DEVICE_STATE_LOW_POWER:
+			ret = qep_set_device_low_power(dev);
+			break;
+		case PM_DEVICE_STATE_FORCE_SUSPEND:
+			ret = qep_set_device_force_suspend(dev);
+			break;
+		default:
+			ret = -ENOTSUP;
+		}
+	} else if (ctrl_command == PM_DEVICE_STATE_GET) {
+		*(state) = qep_sedi_get_power_state(dev);
+	}
+
+	return ret;
+}
+#endif /* !CONFIG_PM_DEVICE */
+
 
 void qep_isr(struct device *dev)
 {
@@ -132,7 +246,7 @@ static void default_qep_callback(const void *param,
 		drv_data->user_cb = NULL;
 		drv_data->user_param = NULL;
 		k_sem_give(GET_QEP_SEM(dev));
-		device_busy_clear(dev);
+		pm_device_busy_clear(dev);
 	}
 }
 
@@ -155,7 +269,7 @@ static int qep_sedi_start_decode(const struct device *dev,
 		ret = -EPERM;
 		goto exit;
 	}
-	device_busy_set(dev);
+	pm_device_busy_set(dev);
 
 exit:
 	return ret;
@@ -175,7 +289,7 @@ static int qep_sedi_stop_decode(const struct device *dev)
 	drv_data->user_cb = NULL;
 	drv_data->user_param = NULL;
 	k_sem_give(GET_QEP_SEM(dev));
-	device_busy_clear(dev);
+	pm_device_busy_clear(dev);
 
 exit:
 	k_mutex_unlock(GET_QEP_MUTEX(dev));
@@ -248,7 +362,7 @@ static int qep_sedi_start_edge_capture(const struct device *dev,
 		drv_data->user_param = NULL;
 		return -EPERM;
 	}
-	device_busy_set(dev);
+	pm_device_busy_set(dev);
 	return 0;
 }
 
@@ -262,7 +376,7 @@ static int qep_sedi_stop_edge_capture(const struct device *dev)
 		ret = -EPERM;
 	}
 	k_mutex_unlock(GET_QEP_MUTEX(dev));
-	device_busy_clear(dev);
+	pm_device_busy_clear(dev);
 	return ret;
 }
 
