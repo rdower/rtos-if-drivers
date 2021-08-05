@@ -20,6 +20,37 @@
 		zephyr,console = &uart2;
 		zephyr,shell-uart = &uart2;
 	};
+
+	power-states {
+		d0i0: d0i0 {
+			compatible = "zephyr,power-state";
+			power-state-name = "suspend-to-idle";
+			min-residency-us = <10000>;
+		};
+
+		d0i1: d0i1 {
+			compatible = "zephyr,power-state";
+			power-state-name = "suspend-to-idle";
+			min-residency-us = <200000>;
+		};
+
+		d0i2: d0i2 {
+			compatible = "zephyr,power-state";
+			power-state-name = "suspend-to-ram";
+			min-residency-us = <1000000>;
+		};
+
+		d0i3: d0i3 {
+			compatible = "zephyr,power-state";
+			power-state-name = "suspend-to-ram";
+			min-residency-us = <2000000>;
+		};
+	};
+
+};
+
+&cpu0 {
+	cpu-power-states = <&d0i0 &d0i1 &d0i2 &d0i3>;
 };
 
 &uart0 {
