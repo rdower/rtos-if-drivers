@@ -7,3 +7,45 @@ menuconfig UART_SEDI
 	  This option enables the PSE UART driver.
 	  This driver is simply a shim driver based on the UART driver
 	  provided by the PSE BSP.
+
+config UART_SEDI_USE_DMA
+	depends on UART_SEDI
+	bool "USE UART DMA for Asynchronous Transfers"
+	select DMA
+	select DMA_SEDI
+	help
+	 This option enables UART DMA feature to be used for asynchrounous
+	 data transfers. All Tx operaton are done using dma controller 0 and
+	 all Rx operations are done using dma controller 1.
+
+if (UART_9_BIT)
+config UART_SEDI_0_RX_ADDR
+	int "Receive address of UART_0 in 9-bit mode"
+	range 0 255
+	default 1
+
+config UART_SEDI_1_RX_ADDR
+	int "Receive address of UART_1 in 9-bit mode"
+	range 0 255
+	default 2
+
+config UART_SEDI_2_RX_ADDR
+	int "Receive address of UART_2 in 9-bit mode"
+	range 0 255
+	default 3
+
+config UART_SEDI_3_RX_ADDR
+	int "Receive address of UART_3 in 9-bit mode"
+	range 0 255
+	default 4
+
+config UART_SEDI_4_RX_ADDR
+	int "Receive address of UART_4 in 9-bit mode"
+	range 0 255
+	default 5
+
+config UART_SEDI_5_RX_ADDR
+	int "Receive address of UART_5 in  9-bit mode"
+	range 0 255
+	default 6
+endif

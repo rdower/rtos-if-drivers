@@ -13,6 +13,11 @@ config UART_RS_485
 	  Default operation would be in RS232 mode and can be configured to
 	  enable RS485 mode of operation using RS485 APIs
 
+config UART_9_BIT
+	bool "Enable 9-bit operation support"
+	help
+	  This option enables support for 9-bit operation in UART
+
 rsource "Kconfig.uart_intel"
 
 rsource "Kconfig.sedi"

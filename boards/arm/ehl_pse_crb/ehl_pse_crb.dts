@@ -55,12 +55,12 @@
 
 &uart0 {
 	current-speed = <115200>;
-	status = "okay";
+	status = "disabled";
 };
 
 &uart1 {
 	current-speed = <115200>;
-	status = "okay";
+	status = "disabled";
 };
 
 &uart2 {
@@ -70,15 +70,15 @@
 
 &uart3 {
 	current-speed = <115200>;
-	status = "okay";
+	status = "disabled";
 };
 
 &uart4 {
 	current-speed = <115200>;
-	status = "okay";
+	status = "disabled";
 };
 
 &uart5 {
 	current-speed = <115200>;
-	status = "okay";
+	status = "disabled";
 };
