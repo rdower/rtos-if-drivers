@@ -496,6 +496,26 @@
 		#size-cells = <0>;
 		status = "okay";
 	};
+
+	tgpio0: tgpio@40201000 {
+		compatible = "intel,pse-tgpio";
+		reg = <0x40201000 0x1000>;
+		peripheral-id = <0>;
+		label = "TGPIO_0";
+		interrupts = <17 3>;
+		interrupt-parent = <&nvic>;
+		status = "okay";
+	};
+
+	tgpio1: tgpio@40301000 {
+		compatible = "intel,pse-tgpio";
+		reg = <0x40301000 0x1000>;
+		peripheral-id = <1>;
+		label = "TGPIO_1";
+		interrupts = <18 3>;
+		interrupt-parent = <&nvic>;
+		status = "okay";
+	};
 };
 
 &nvic {

@@ -50,6 +50,7 @@ if (CONFIG_HAS_SEDI)
   zephyr_library_sources_ifdef(CONFIG_PWM_SEDI   ${sedi_lib_src_dir}/drivers/pwm/sedi_pwm.c)
   zephyr_library_sources_ifdef(CONFIG_SPI_SEDI   ${sedi_lib_src_dir}/drivers/spi/spi_dw_apb.c)
   zephyr_library_sources_ifdef(CONFIG_I2S_SEDI	 ${sedi_lib_src_dir}/drivers/i2s/sedi_i2s.c)
+  zephyr_library_sources_ifdef(CONFIG_GPIO_TIMED_SEDI ${sedi_lib_src_dir}/drivers/tgpio/sedi_tgpio.c)
   zephyr_library_sources(${sedi_lib_src_dir}/drivers/ipc/ipc_bsp.c
     ${sedi_lib_src_dir}/drivers/ipc/fwst.c)
   zephyr_library_sources_ifdef(CONFIG_HPET_TIMER ${sedi_lib_src_dir}/drivers/hpet/sedi_hpet.c)

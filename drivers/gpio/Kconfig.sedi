@@ -10,3 +10,9 @@ menuconfig GPIO_SEDI
 	bool "SEDI GPIO driver"
 	help
 	  Enable the GPIO driver using the SEDI library.
+
+menuconfig GPIO_TIMED_SEDI
+	bool "SEDI Timed GPIO driver"
+	help
+	Enable the GPIO driver found on Intel Microcontroller
+	boards, using the SEDI library.
