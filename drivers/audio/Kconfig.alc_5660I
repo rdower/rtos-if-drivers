@@ -1,0 +1,45 @@
+#
+# Copyright (c) 2021 Intel Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+menuconfig AUDIO_ALC_5660I
+	bool "ALC_5660I DAC support"
+	depends on I2C && GPIO
+	help
+	    Enable ALC_5660I support on the selected board
+
+config	ALC_CODEC_ADDR
+	int "ALC CODEC I2C Address as Slave device"
+	depends on AUDIO_ALC_5660I
+	default 28
+	help
+	    ALC CODEC I2C Address default is 0x1C.
+
+config  ALC_CODEC_I2C_MASTER_NAME
+	string "I2C for ALC CODEC device"
+	depends on AUDIO_ALC_5660I
+	default "I2C_5"
+	help
+	    Build settings to run on the RVP
+
+config  ALC_CODEC_GPIO_NAME
+	string "GPIO Pins Connected ALC CODEC for jack detection"
+	depends on AUDIO_ALC_5660I
+	default "GPIO_0"
+	help
+	    Build settings to run on the RVP
+
+config	GPIO_SEDI_0_PINS
+	int "GPIO pin number"
+	depends on AUDIO_ALC_5660I
+	default 30
+	help
+	    GPIO pin number for detection.
+
+config	GPIO_CODEC_DET_PLUGIN
+	bool "CODEC detection plugin"
+	depends on AUDIO_ALC_5660I
+	help
+	    enable CODEC detection on plugin.

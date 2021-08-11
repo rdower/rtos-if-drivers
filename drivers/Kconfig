@@ -17,5 +17,6 @@ rsource "watchdog/Kconfig"
 rsource "i2c/Kconfig"
 rsource "gpio/Kconfig"
 rsource "i2s/Kconfig"
+rsource "audio/Kconfig"
 
 endmenu

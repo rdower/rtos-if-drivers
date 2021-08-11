@@ -381,7 +381,7 @@
 		label = "I2C_5";
 		interrupts = <31 2>;
 		interrupt-parent = <&nvic>;
-		status = "disabled";
+		status = "okay";
 		};
 
 	i2c6: i2c@4010C000 {
