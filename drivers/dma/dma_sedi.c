@@ -764,7 +764,7 @@ static bool is_dma_busy(sedi_dma_t dev)
 }
 
 static int dma_change_device_power(const struct device *dev,
-				   uint32_t power_state)
+				   enum pm_device_state power_state)
 {
 	struct dma_sedi_driver_data *const data = DEV_DATA(dev);
 	const struct dma_sedi_config_info *const info = DEV_CFG(dev);
@@ -808,19 +808,15 @@ static int dma_change_device_power(const struct device *dev,
 }
 
 static int dma_sedi_device_ctrl(const struct device *dev, uint32_t ctrl_command,
-				uint32_t *context, pm_device_cb cb, void *arg)
+				enum pm_device_state *state)
 {
 	int ret = 0;
 	struct dma_sedi_driver_data *const data = DEV_DATA(dev);
 
 	if (ctrl_command == PM_DEVICE_STATE_SET) {
-		ret = dma_change_device_power(dev, *(uint32_t *)context);
+		ret = dma_change_device_power(dev, *state);
 	} else if (ctrl_command == PM_DEVICE_STATE_GET) {
-		*context = data->power_status;
-	}
-
-	if (cb) {
-		cb(dev, ret, context, arg);
+		*state = data->power_status;
 	}
 
 	return ret;

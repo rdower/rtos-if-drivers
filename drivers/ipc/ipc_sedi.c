@@ -35,7 +35,7 @@ static void set_ipc_dev_busy(const struct device *dev, bool is_write)
 
 	atomic_set_bit(&ipc->status,
 		       is_write ? IPC_WRITE_BUSY_BIT : IPC_READ_BUSY_BIT);
-	device_busy_set(dev);
+	pm_device_busy_set(dev);
 	irq_unlock(key);
 }
 
@@ -48,7 +48,7 @@ static void clear_ipc_dev_busy(const struct device *dev, bool is_write)
 			 is_write ? IPC_WRITE_BUSY_BIT : IPC_READ_BUSY_BIT);
 	if (!atomic_test_bit(&ipc->status,
 			is_write ? IPC_READ_BUSY_BIT : IPC_WRITE_BUSY_BIT)) {
-		device_busy_clear(dev);
+		pm_device_busy_clear(dev);
 	}
 	irq_unlock(key);
 }
@@ -408,19 +408,15 @@ ack_end:
 
 #if defined(CONFIG_PM_DEVICE)
 static int ipc_power_ctrl(const struct device *dev, uint32_t ctrl_command,
-			  uint32_t *context, pm_device_cb cb, void *arg)
+			  enum pm_device_state *state)
 {
 	int ret = 0;
 	struct ipc_sedi_context *data = dev->data;
 
 	if (ctrl_command == PM_DEVICE_STATE_SET) {
-		data->power_status = *((uint32_t *)context);
+		data->power_status = *state;
 	} else if (ctrl_command == PM_DEVICE_STATE_GET) {
-		*context = data->power_status;
-	}
-
-	if (cb) {
-		cb(dev, ret, context, arg);
+		*state = data->power_status;
 	}
 
 	return ret;
