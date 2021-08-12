@@ -36,7 +36,7 @@ struct spi_sedi_data {
 	int rx_dma_instance;
 	int tx_channel;
 	int rx_channel;
-#ifdef CONFIG_DEVICE_POWER_MANAGEMENT
+#ifdef CONFIG_PM_DEVICE
 	uint32_t device_power_state;
 #endif
 };
@@ -207,7 +207,7 @@ static int transceive(const struct device *dev, const struct spi_config *config,
 
 	spi_context_cs_control(&spi->ctx, true);
 
-	device_busy_set(dev);
+	pm_device_busy_set(dev);
 #if CONFIG_DMA_SEDI
 	if ((spi->tx_dma_instance >= 0) && (spi->tx_channel >= 0) &&
 	    (spi->rx_dma_instance >= 0) && (spi->rx_channel >= 0) &&
@@ -234,7 +234,7 @@ static int transceive(const struct device *dev, const struct spi_config *config,
 	ret = spi_context_wait_for_completion(&spi->ctx);
 out:
 	spi_context_release(&spi->ctx, ret);
-	device_busy_clear(dev);
+	pm_device_busy_clear(dev);
 
 	return ret;
 }
@@ -353,10 +353,10 @@ int spi_sedi_init(const struct device *dev)
 #define CREATE_SEDI_SPI_INSTANCE(num)				       \
 	static void spi_##num##_irq_init(void)			       \
 	{							       \
-		IRQ_CONNECT(DT_INST_IRQN(num),			       \
-			    DT_INST_IRQ(num, priority),		       \
+		IRQ_CONNECT(DT_IRQN(DT_NODELABEL(spi##num)),	       \
+			    DT_IRQ(DT_NODELABEL(spi##num), priority),  \
 			    spi_isr, num, 0);			       \
-		irq_enable(DT_INST_IRQN(num));			       \
+		irq_enable(DT_IRQN(DT_NODELABEL(spi##num)));	       \
 	}							       \
 	static struct spi_sedi_data spi_##num##_data = {	       \
 		SPI_CONTEXT_INIT_LOCK(spi_##num##_data, ctx),	       \
@@ -376,7 +376,7 @@ int spi_sedi_init(const struct device *dev)
 		      POST_KERNEL, CONFIG_KERNEL_INIT_PRIORITY_DEVICE, \
 		      &sedi_spi_api)
 
-#ifdef CONFIG_DEVICE_POWER_MANAGEMENT
+#ifdef CONFIG_PM_DEVICE
 
 static void spi_sedi_set_power_state(const struct device *dev,
 				     uint32_t power_state)
@@ -397,7 +397,7 @@ static int spi_suspend_device(const struct device *dev)
 {
 	const struct spi_sedi_config *config = dev->config;
 
-	if (device_busy_check(dev)) {
+	if (pm_device_is_busy(dev)) {
 		return -EBUSY;
 	}
 
@@ -423,7 +423,7 @@ static int spi_resume_device_from_suspend(const struct device *dev)
 	}
 
 	spi_sedi_set_power_state(dev, PM_DEVICE_STATE_ACTIVE);
-	device_busy_clear(dev);
+	pm_device_busy_clear(dev);
 
 	return 0;
 }
@@ -432,7 +432,7 @@ static int spi_set_device_low_power(const struct device *dev)
 {
 	const struct spi_sedi_config *config = dev->config;
 
-	if (device_busy_check(dev)) {
+	if (pm_device_is_busy(dev)) {
 		return -EBUSY;
 	}
 
@@ -461,13 +461,13 @@ static int spi_set_device_force_suspend(const struct device *dev)
 }
 
 static int spi_sedi_device_ctrl(const struct device *dev, uint32_t ctrl_command,
-				void *context, device_pm_cb cb, void *arg)
+				enum pm_device_state *state)
 {
 	int ret = 0;
 
-	if (ctrl_command == DEVICE_PM_SET_POWER_STATE) {
+	if (ctrl_command == PM_DEVICE_STATE_SET) {
 
-		switch (*((uint32_t *)context)) {
+		switch (*state) {
 		case PM_DEVICE_STATE_SUSPEND:
 			ret = spi_suspend_device(dev);
 			break;
@@ -477,24 +477,20 @@ static int spi_sedi_device_ctrl(const struct device *dev, uint32_t ctrl_command,
 		case PM_DEVICE_STATE_LOW_POWER:
 			ret = spi_set_device_low_power(dev);
 			break;
-		case PM_DEVICE_STATE_SUSPEND:
+		case PM_DEVICE_STATE_FORCE_SUSPEND:
 			ret = spi_set_device_force_suspend(dev);
 			break;
 		default:
 			ret = -ENOTSUP;
 		}
-	} else if (ctrl_command == DEVICE_PM_GET_POWER_STATE) {
-		*((uint32_t *)context) = spi_sedi_get_power_state(dev);
-	}
-
-	if (cb) {
-		cb(dev, ret, context, arg);
+	} else if (ctrl_command == PM_DEVICE_STATE_GET) {
+		*state = spi_sedi_get_power_state(dev);
 	}
 
 	return ret;
 }
 
-#endif /* CONFIG_DEVICE_POWER_MANAGEMENT */
+#endif /* CONFIG_PM_DEVICE */
 
 #if DT_NODE_HAS_STATUS(DT_NODELABEL(spi0), okay)
 #if DT_NODE_HAS_PROP(DT_NODELABEL(spi0), tx-dma-channel)
