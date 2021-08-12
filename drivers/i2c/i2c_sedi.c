@@ -24,7 +24,7 @@ struct i2c_context {
 	int tx_channel;
 	int rx_cmd_channel;
 	int rx_data_channel;
-#ifdef CONFIG_DEVICE_POWER_MANAGEMENT
+#ifdef CONFIG_PM_DEVICE
 	uint32_t device_power_state;
 #endif
 };
@@ -107,7 +107,7 @@ static int i2c_api_full_io(
 	context = dev->data;
 
 	ret = k_mutex_lock(context->mutex, K_FOREVER);
-	device_busy_set(dev);
+	pm_device_busy_set(dev);
 
 	if (ret != 0) {
 		goto error_before_lock;
@@ -183,7 +183,7 @@ end:
 	k_mutex_unlock(context->mutex);
 
 error_before_lock:
-	device_busy_clear(dev);
+	pm_device_busy_clear(dev);
 	if (errno != 0) {
 		return -EIO;
 	} else {
@@ -259,27 +259,27 @@ extern void dw_i2c_isr(IN sedi_i2c_t i2c_device);
 		&i2c_apis					\
 		)
 
-#ifdef CONFIG_DEVICE_POWER_MANAGEMENT
+#ifdef CONFIG_PM_DEVICE
 
-static void i2c_sedi_set_power_state(struct device *dev, uint32_t power_state)
+static void i2c_sedi_set_power_state(const struct device *dev, uint32_t power_state)
 {
 	struct i2c_context *context = dev->data;
 
 	context->device_power_state = power_state;
 }
 
-static uint32_t i2c_sedi_get_power_state(struct device *dev)
+static uint32_t i2c_sedi_get_power_state(const struct device *dev)
 {
 	struct i2c_context *context = dev->data;
 
 	return context->device_power_state;
 }
 
-static int i2c_suspend_device(struct device *dev)
+static int i2c_suspend_device(const struct device *dev)
 {
 	struct i2c_context *context = dev->data;
 
-	if (device_busy_check(dev)) {
+	if (pm_device_is_busy(dev)) {
 		return -EBUSY;
 	}
 
@@ -294,7 +294,7 @@ static int i2c_suspend_device(struct device *dev)
 	return 0;
 }
 
-static int i2c_resume_device_from_suspend(struct device *dev)
+static int i2c_resume_device_from_suspend(const struct device *dev)
 {
 	struct i2c_context *context = dev->data;
 	int ret;
@@ -305,16 +305,16 @@ static int i2c_resume_device_from_suspend(struct device *dev)
 	}
 
 	i2c_sedi_set_power_state(dev, PM_DEVICE_STATE_ACTIVE);
-	device_busy_clear(dev);
+	pm_device_busy_clear(dev);
 
 	return 0;
 }
 
-static int i2c_set_device_low_power(struct device *dev)
+static int i2c_set_device_low_power(const struct device *dev)
 {
 	struct i2c_context *context = dev->data;
 
-	if (device_busy_check(dev)) {
+	if (pm_device_is_busy(dev)) {
 		return -EBUSY;
 	}
 
@@ -329,7 +329,7 @@ static int i2c_set_device_low_power(struct device *dev)
 	return 0;
 }
 
-static int i2c_set_device_force_suspend(struct device *dev)
+static int i2c_set_device_force_suspend(const struct device *dev)
 {
 	struct i2c_context *context = dev->data;
 	int ret;
@@ -343,14 +343,14 @@ static int i2c_set_device_force_suspend(struct device *dev)
 	return 0;
 }
 
-static int i2c_sedi_device_ctrl(struct device *dev, uint32_t ctrl_command,
-				void *context, device_pm_cb cb, void *arg)
+static int i2c_sedi_device_ctrl(const struct device *dev, uint32_t ctrl_command,
+				enum pm_device_state *context)
 {
 	int ret = 0;
 
-	if (ctrl_command == DEVICE_PM_SET_POWER_STATE) {
+	if (ctrl_command == PM_DEVICE_STATE_SET) {
 
-		switch (*((uint32_t *)context)) {
+		switch (*context) {
 		case PM_DEVICE_STATE_SUSPEND:
 			ret = i2c_suspend_device(dev);
 			break;
@@ -360,24 +360,20 @@ static int i2c_sedi_device_ctrl(struct device *dev, uint32_t ctrl_command,
 		case PM_DEVICE_STATE_LOW_POWER:
 			ret = i2c_set_device_low_power(dev);
 			break;
-		case PM_DEVICE_STATE_SUSPEND:
+		case PM_DEVICE_STATE_FORCE_SUSPEND:
 			ret = i2c_set_device_force_suspend(dev);
 			break;
 		default:
 			ret = -ENOTSUP;
 		}
-	} else if (ctrl_command == DEVICE_PM_GET_POWER_STATE) {
-		*((uint32_t *)context) = i2c_sedi_get_power_state(dev);
-	}
-
-	if (cb) {
-		cb(dev, ret, context, arg);
+	} else if (ctrl_command == PM_DEVICE_STATE_GET) {
+		*context = i2c_sedi_get_power_state(dev);
 	}
 
 	return ret;
 }
 
-#endif /* CONFIG_DEVICE_POWER_MANAGEMENT */
+#endif /* CONFIG_PM_DEVICE */
 
 #if DT_NODE_HAS_STATUS(DT_NODELABEL(i2c0), okay)
 #if DT_NODE_HAS_PROP(DT_NODELABEL(i2c0), tx-dma-channel)
