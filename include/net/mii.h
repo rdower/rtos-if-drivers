@@ -154,6 +154,22 @@
 #define MII_ESTAT_1000BASE_T_FULL  BIT(13) /** 1000BASE-T full duplex capable */
 #define MII_ESTAT_1000BASE_T_HALF  BIT(12) /** 1000BASE-T half duplex capable */
 
+/* MDIO Manageable Devices (MMDs). */
+/** Auto-Negotiation */
+#define MDIO_MMD_AN             7
+
+/* MDIO Registers. */
+/** Devices in Package 1 */
+#define MDIO_DEV_IN_PKG1	5
+/** Devices in Package 2 */
+#define MDIO_DEV_IN_PKG2	6
+/** MultiGBASE-T AN Control 1 */
+#define MDIO_MGBT_AN_CTRL1      32
+
+/* MDIO Bit definitions */
+/** Device in package reserved */
+#define DEV_IN_PKG_RSVD		0x1FFFC000
+
 /**
  * @}
  */

@@ -3,7 +3,7 @@
 
 menu "Device Drivers"
 
-rsource "ethernet/Kconfig"
+orsource "$(ARCH)/ethernet/Kconfig"
 rsource "timer/Kconfig"
 rsource "dma/Kconfig"
 rsource "ipc/Kconfig"
