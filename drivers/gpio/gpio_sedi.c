@@ -21,34 +21,34 @@ struct gpio_sedi_config {
 struct gpio_sedi_runtime {
 	struct gpio_driver_config common;
 	sys_slist_t callbacks;
-#ifdef CONFIG_DEVICE_POWER_MANAGEMENT
+#ifdef CONFIG_PM_DEVICE
 	uint32_t device_power_state;
-#endif  /* CONFIG_DEVICE_POWER_MANAGEMENT */
+#endif  /* CONFIG_PM_DEVICE */
 };
 
 static int gpio_sedi_init(const struct device *dev);
 
-#ifdef CONFIG_DEVICE_POWER_MANAGEMENT
-static void gpio_set_power_state(struct device *dev, uint32_t power_state)
+#ifdef CONFIG_PM_DEVICE
+static void gpio_set_power_state(const struct device *dev, uint32_t power_state)
 {
 	struct gpio_sedi_runtime *context = dev->data;
 
 	context->device_power_state = power_state;
 }
 
-static uint32_t gpio_get_power_state(struct device *dev)
+static uint32_t gpio_get_power_state(const struct device *dev)
 {
 	struct gpio_sedi_runtime *context = dev->data;
 
 	return context->device_power_state;
 }
 
-static int gpio_suspend_device(struct device *dev)
+static int gpio_suspend_device(const struct device *dev)
 {
 	uint32_t status;
 	const struct gpio_sedi_config *config = dev->config;
 
-	if (device_busy_check(dev)) {
+	if (pm_device_is_busy(dev)) {
 		return -EBUSY;
 	}
 
@@ -61,7 +61,7 @@ static int gpio_suspend_device(struct device *dev)
 	return 0;
 }
 
-static int gpio_resume_device_from_suspend(struct device *dev)
+static int gpio_resume_device_from_suspend(const struct device *dev)
 {
 	uint32_t status;
 	const struct gpio_sedi_config *config = dev->config;
@@ -75,12 +75,12 @@ static int gpio_resume_device_from_suspend(struct device *dev)
 	return 0;
 }
 
-static int gpio_set_device_low_power(struct device *dev)
+static int gpio_set_device_low_power(const struct device *dev)
 {
 	uint32_t status;
 	const struct gpio_sedi_config *config = dev->config;
 
-	if (device_busy_check(dev)) {
+	if (pm_device_is_busy(dev)) {
 		return -EBUSY;
 	}
 
@@ -93,7 +93,7 @@ static int gpio_set_device_low_power(struct device *dev)
 	return 0;
 }
 
-static int gpio_force_suspend_device(struct device *dev)
+static int gpio_force_suspend_device(const struct device *dev)
 {
 	uint32_t status;
 	const struct gpio_sedi_config *config = dev->config;
@@ -107,13 +107,13 @@ static int gpio_force_suspend_device(struct device *dev)
 	return 0;
 }
 
-static int gpio_sedi_power_management(struct device *dev, uint32_t ctrl_command,
-				      void *context, device_pm_cb cb, void *arg)
+static int gpio_sedi_power_management(const struct device *dev, uint32_t ctrl_command,
+				      enum pm_device_state *state)
 {
 	int ret = 0;
 
 	if (ctrl_command == PM_DEVICE_STATE_SET) {
-		switch (*((uint32_t *)context)) {
+		switch (*state) {
 		case PM_DEVICE_STATE_SUSPEND:
 			ret = gpio_suspend_device(dev);
 			break;
@@ -130,16 +130,12 @@ static int gpio_sedi_power_management(struct device *dev, uint32_t ctrl_command,
 			ret = -ENOTSUP;
 		}
 	} else if (ctrl_command == PM_DEVICE_STATE_GET) {
-		*((uint32_t *)context) = gpio_get_power_state(dev);
-	}
-
-	if (cb) {
-		cb(dev, ret, context, arg);
+		*state = gpio_get_power_state(dev);
 	}
 
 	return ret;
 }
-#endif /* CONFIG_DEVICE_POWER_MANAGEMENT */
+#endif /* CONFIG_PM_DEVICE */
 
 static void gpio_sedi_callback(const uint32_t pin_mask, const uint8_t port,
 			       void *param)
