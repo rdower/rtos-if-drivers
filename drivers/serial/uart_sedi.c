@@ -1408,12 +1408,14 @@ static const struct uart_driver_api api = {
 };
 
 void uart_sedi_clk_change_cb(uint32_t core_ferq, uint32_t hbw_freq,
-			     void *ctx)
+			     uint32_t is_before, void *ctx)
 {
 	const struct uart_sedi_config_info *config =
 		(const struct uart_sedi_config_info *) (ctx);
 
-	sedi_uart_set_baud_rate(config->instance, config->baud_rate, hbw_freq);
+	if (!is_before) {
+		sedi_uart_set_baud_rate(config->instance, config->baud_rate, hbw_freq);
+	}
 }
 
 static int uart_sedi_init(const struct device *dev)
