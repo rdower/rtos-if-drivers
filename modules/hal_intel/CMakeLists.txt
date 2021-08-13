@@ -42,6 +42,7 @@ if (CONFIG_HAS_SEDI)
   zephyr_library_sources(${sedi_lib_src_dir}/drivers/sideband/sideband.c)
   zephyr_library_sources(${sedi_lib_src_dir}/drivers/tsync/tsync.c)
   zephyr_library_sources(${sedi_lib_src_dir}/drivers/pm/pm.c ${sedi_lib_src_dir}/drivers/pm/pm.S)
+  zephyr_library_sources(${sedi_lib_src_dir}/drivers/dtf/dtf.c)
 
   zephyr_library_sources_ifdef(CONFIG_DMA_SEDI    ${sedi_lib_src_dir}/drivers/dma/dma_ann_1p0.c)
   zephyr_library_sources_ifdef(CONFIG_UART_SEDI   ${sedi_lib_src_dir}/drivers/usart/dw_uart.c)
