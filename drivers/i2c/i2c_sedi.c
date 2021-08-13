@@ -198,65 +198,65 @@ static const struct i2c_driver_api i2c_apis = {
 
 extern void dw_i2c_isr(IN sedi_i2c_t i2c_device);
 
-#define CREATE_I2C_INSTANCE(num)				\
-	/* limit 1, as there is no multiple transfer */		\
-	static K_SEM_DEFINE(i2c_##num##_sem, 0, 1);		\
-	static K_MUTEX_DEFINE(i2c_##num##_mutex);		\
-	static struct i2c_context i2c_##num##_context = {	\
-		.sedi_device = num,				\
-		.sem = &i2c_##num##_sem,			\
-		.mutex = &i2c_##num##_mutex,			\
-		.tx_dma_instance = I2C##num##_TX_DMA_DEV,	\
-		.rx_dma_instance = I2C##num##_RX_DMA_DEV,	\
-		.tx_channel = I2C##num##_TX_DMA_CHN,		\
-		.rx_data_channel = I2C##num##_RX_DMA_CHN,	\
-		.rx_cmd_channel = I2C##num##_RX_DMA_CHN_2	\
-	};							\
-	static void i2c_##num##_callback(const uint32_t event)	\
-	{							\
-		if (event == SEDI_I2C_EVENT_TRANSFER_DONE) {	\
-			i2c_##num##_context.err = 0;		\
-		}						\
-		else {						\
-			i2c_##num##_context.err = 1;		\
-		}						\
-		k_sem_give(i2c_##num##_context.sem);		\
-	}							\
-	static int i2c_##num##_init(const struct device *dev)	\
-	{							\
-		int ret;					\
-		ret = sedi_i2c_init(				\
-			i2c_##num##_context.sedi_device,	\
-			i2c_##num##_callback			\
-			);					\
-		if (ret != 0) {					\
-			return -EIO;				\
-		}						\
-		ret = sedi_i2c_set_power(			\
-			i2c_##num##_context.sedi_device,	\
-			SEDI_POWER_FULL);			\
-		if (ret != 0) {					\
-			return -EIO;				\
-		}						\
-		IRQ_CONNECT(DT_INST_IRQN(num),			\
-			    DT_INST_IRQ(num, priority),		\
-			    dw_i2c_isr,				\
-			    num,				\
-			    0);					\
-		/* assume it always successful as CONNECT ok */	\
-		irq_enable(DT_INST_IRQN(num));			\
-		return 0;					\
-	}							\
-	DEVICE_DEFINE(						\
-		i2c_sedi_##num,					\
-		"I2C_" # num,					\
-		i2c_##num##_init,				\
-		i2c_sedi_device_ctrl,				\
-		&i2c_##num##_context,				\
-		NULL,						\
-		POST_KERNEL,					\
-		CONFIG_KERNEL_INIT_PRIORITY_DEVICE,		\
-		&i2c_apis					\
+#define CREATE_I2C_INSTANCE(num)				      \
+	/* limit 1, as there is no multiple transfer */		      \
+	static K_SEM_DEFINE(i2c_##num##_sem, 0, 1);		      \
+	static K_MUTEX_DEFINE(i2c_##num##_mutex);		      \
+	static struct i2c_context i2c_##num##_context = {	      \
+		.sedi_device = num,				      \
+		.sem = &i2c_##num##_sem,			      \
+		.mutex = &i2c_##num##_mutex,			      \
+		.tx_dma_instance = I2C##num##_TX_DMA_DEV,	      \
+		.rx_dma_instance = I2C##num##_RX_DMA_DEV,	      \
+		.tx_channel = I2C##num##_TX_DMA_CHN,		      \
+		.rx_data_channel = I2C##num##_RX_DMA_CHN,	      \
+		.rx_cmd_channel = I2C##num##_RX_DMA_CHN_2	      \
+	};							      \
+	static void i2c_##num##_callback(const uint32_t event)	      \
+	{							      \
+		if (event == SEDI_I2C_EVENT_TRANSFER_DONE) {	      \
+			i2c_##num##_context.err = 0;		      \
+		}						      \
+		else {						      \
+			i2c_##num##_context.err = 1;		      \
+		}						      \
+		k_sem_give(i2c_##num##_context.sem);		      \
+	}							      \
+	static int i2c_##num##_init(const struct device *dev)	      \
+	{							      \
+		int ret;					      \
+		ret = sedi_i2c_init(				      \
+			i2c_##num##_context.sedi_device,	      \
+			i2c_##num##_callback			      \
+			);					      \
+		if (ret != 0) {					      \
+			return -EIO;				      \
+		}						      \
+		ret = sedi_i2c_set_power(			      \
+			i2c_##num##_context.sedi_device,	      \
+			SEDI_POWER_FULL);			      \
+		if (ret != 0) {					      \
+			return -EIO;				      \
+		}						      \
+		IRQ_CONNECT(DT_IRQN(DT_NODELABEL(i2c##num)),	      \
+			    DT_IRQ(DT_NODELABEL(i2c##num), priority), \
+			    dw_i2c_isr,				      \
+			    num,				      \
+			    0);					      \
+		/* assume it always successful as CONNECT ok */	      \
+		irq_enable(DT_IRQN(DT_NODELABEL(i2c##num)));	      \
+		return 0;					      \
+	}							      \
+	DEVICE_DEFINE(						      \
+		i2c_sedi_##num,					      \
+		"I2C_" # num,					      \
+		i2c_##num##_init,				      \
+		i2c_sedi_device_ctrl,				      \
+		&i2c_##num##_context,				      \
+		NULL,						      \
+		POST_KERNEL,					      \
+		CONFIG_KERNEL_INIT_PRIORITY_DEVICE,		      \
+		&i2c_apis					      \
 		)
 
 #ifdef CONFIG_PM_DEVICE
@@ -344,13 +344,13 @@ static int i2c_set_device_force_suspend(const struct device *dev)
 }
 
 static int i2c_sedi_device_ctrl(const struct device *dev, uint32_t ctrl_command,
-				enum pm_device_state *context)
+				enum pm_device_state *state)
 {
 	int ret = 0;
 
 	if (ctrl_command == PM_DEVICE_STATE_SET) {
 
-		switch (*context) {
+		switch (*state) {
 		case PM_DEVICE_STATE_SUSPEND:
 			ret = i2c_suspend_device(dev);
 			break;
@@ -367,7 +367,7 @@ static int i2c_sedi_device_ctrl(const struct device *dev, uint32_t ctrl_command,
 			ret = -ENOTSUP;
 		}
 	} else if (ctrl_command == PM_DEVICE_STATE_GET) {
-		*context = i2c_sedi_get_power_state(dev);
+		*state = i2c_sedi_get_power_state(dev);
 	}
 
 	return ret;
@@ -384,7 +384,7 @@ static int i2c_sedi_device_ctrl(const struct device *dev, uint32_t ctrl_command,
 #define I2C0_TX_DMA_CHN I2C_NOT_USE_DMA
 #endif
 #if (DT_NODE_HAS_PROP(DT_NODELABEL(i2c0), rx-dma-channel) && \
-DT_NODE_HAS_PROP(DT_NODELABEL(i2c0), rx-dma-ext-channel))
+	DT_NODE_HAS_PROP(DT_NODELABEL(i2c0), rx-dma-ext-channel))
 #define I2C0_RX_DMA_DEV (DT_PROP(DT_NODELABEL(i2c0), rx-dma-channel) / DMA_CHANNEL_NUM)
 #define I2C0_RX_DMA_CHN (DT_PROP(DT_NODELABEL(i2c0), rx-dma-channel) % DMA_CHANNEL_NUM)
 #define I2C0_RX_DMA_DEV_2 (DT_PROP(DT_NODELABEL(i2c0), rx-dma-ext-channel) / DMA_CHANNEL_NUM)
@@ -406,7 +406,7 @@ CREATE_I2C_INSTANCE(0);
 #define I2C1_TX_DMA_CHN I2C_NOT_USE_DMA
 #endif
 #if (DT_NODE_HAS_PROP(DT_NODELABEL(i2c1), rx-dma-channel) && \
-DT_NODE_HAS_PROP(DT_NODELABEL(i2c1), rx-dma-ext-channel))
+	DT_NODE_HAS_PROP(DT_NODELABEL(i2c1), rx-dma-ext-channel))
 #define I2C1_RX_DMA_DEV (DT_PROP(DT_NODELABEL(i2c1), rx-dma-channel) / DMA_CHANNEL_NUM)
 #define I2C1_RX_DMA_CHN (DT_PROP(DT_NODELABEL(i2c1), rx-dma-channel) % DMA_CHANNEL_NUM)
 #define I2C1_RX_DMA_DEV_2 (DT_PROP(DT_NODELABEL(i2c1), rx-dma-ext-channel) / DMA_CHANNEL_NUM)
@@ -428,7 +428,7 @@ CREATE_I2C_INSTANCE(1);
 #define I2C2_TX_DMA_CHN I2C_NOT_USE_DMA
 #endif
 #if (DT_NODE_HAS_PROP(DT_NODELABEL(i2c2), rx-dma-channel) && \
-DT_NODE_HAS_PROP(DT_NODELABEL(i2c2), rx-dma-ext-channel))
+	DT_NODE_HAS_PROP(DT_NODELABEL(i2c2), rx-dma-ext-channel))
 #define I2C2_RX_DMA_DEV (DT_PROP(DT_NODELABEL(i2c2), rx-dma-channel) / DMA_CHANNEL_NUM)
 #define I2C2_RX_DMA_CHN (DT_PROP(DT_NODELABEL(i2c2), rx-dma-channel) % DMA_CHANNEL_NUM)
 #define I2C2_RX_DMA_DEV_2 (DT_PROP(DT_NODELABEL(i2c2), rx-dma-ext-channel) / DMA_CHANNEL_NUM)
@@ -450,7 +450,7 @@ CREATE_I2C_INSTANCE(2);
 #define I2C3_TX_DMA_CHN I2C_NOT_USE_DMA
 #endif
 #if (DT_NODE_HAS_PROP(DT_NODELABEL(i2c3), rx-dma-channel) && \
-DT_NODE_HAS_PROP(DT_NODELABEL(i2c3), rx-dma-ext-channel))
+	DT_NODE_HAS_PROP(DT_NODELABEL(i2c3), rx-dma-ext-channel))
 #define I2C3_RX_DMA_DEV (DT_PROP(DT_NODELABEL(i2c3), rx-dma-channel) / DMA_CHANNEL_NUM)
 #define I2C3_RX_DMA_CHN (DT_PROP(DT_NODELABEL(i2c3), rx-dma-channel) % DMA_CHANNEL_NUM)
 #define I2C3_RX_DMA_DEV_2 (DT_PROP(DT_NODELABEL(i2c3), rx-dma-ext-channel) / DMA_CHANNEL_NUM)
@@ -472,7 +472,7 @@ CREATE_I2C_INSTANCE(3);
 #define I2C4_TX_DMA_CHN I2C_NOT_USE_DMA
 #endif
 #if (DT_NODE_HAS_PROP(DT_NODELABEL(i2c4), rx-dma-channel) && \
-DT_NODE_HAS_PROP(DT_NODELABEL(i2c4), rx-dma-ext-channel))
+	DT_NODE_HAS_PROP(DT_NODELABEL(i2c4), rx-dma-ext-channel))
 #define I2C4_RX_DMA_DEV (DT_PROP(DT_NODELABEL(i2c4), rx-dma-channel) / DMA_CHANNEL_NUM)
 #define I2C4_RX_DMA_CHN (DT_PROP(DT_NODELABEL(i2c4), rx-dma-channel) % DMA_CHANNEL_NUM)
 #define I2C4_RX_DMA_DEV_2 (DT_PROP(DT_NODELABEL(i2c4), rx-dma-ext-channel) / DMA_CHANNEL_NUM)
@@ -494,7 +494,7 @@ CREATE_I2C_INSTANCE(4);
 #define I2C5_TX_DMA_CHN I2C_NOT_USE_DMA
 #endif
 #if (DT_NODE_HAS_PROP(DT_NODELABEL(i2c5), rx-dma-channel) && \
-DT_NODE_HAS_PROP(DT_NODELABEL(i2c5), rx-dma-ext-channel))
+	DT_NODE_HAS_PROP(DT_NODELABEL(i2c5), rx-dma-ext-channel))
 #define I2C5_RX_DMA_DEV (DT_PROP(DT_NODELABEL(i2c5), rx-dma-channel) / DMA_CHANNEL_NUM)
 #define I2C5_RX_DMA_CHN (DT_PROP(DT_NODELABEL(i2c5), rx-dma-channel) % DMA_CHANNEL_NUM)
 #define I2C5_RX_DMA_DEV_2 (DT_PROP(DT_NODELABEL(i2c5), rx-dma-ext-channel) / DMA_CHANNEL_NUM)
@@ -516,7 +516,7 @@ CREATE_I2C_INSTANCE(5);
 #define I2C6_TX_DMA_CHN I2C_NOT_USE_DMA
 #endif
 #if (DT_NODE_HAS_PROP(DT_NODELABEL(i2c6), rx-dma-channel) && \
-DT_NODE_HAS_PROP(DT_NODELABEL(i2c6), rx-dma-ext-channel))
+	DT_NODE_HAS_PROP(DT_NODELABEL(i2c6), rx-dma-ext-channel))
 #define I2C6_RX_DMA_DEV (DT_PROP(DT_NODELABEL(i2c6), rx-dma-channel) / DMA_CHANNEL_NUM)
 #define I2C6_RX_DMA_CHN (DT_PROP(DT_NODELABEL(i2c6), rx-dma-channel) % DMA_CHANNEL_NUM)
 #define I2C6_RX_DMA_DEV_2 (DT_PROP(DT_NODELABEL(i2c6), rx-dma-ext-channel) / DMA_CHANNEL_NUM)
@@ -538,7 +538,7 @@ CREATE_I2C_INSTANCE(6);
 #define I2C7_TX_DMA_CHN I2C_NOT_USE_DMA
 #endif
 #if (DT_NODE_HAS_PROP(DT_NODELABEL(i2c7), rx-dma-channel) && \
-DT_NODE_HAS_PROP(DT_NODELABEL(i2c7), rx-dma-ext-channel))
+	DT_NODE_HAS_PROP(DT_NODELABEL(i2c7), rx-dma-ext-channel))
 #define I2C7_RX_DMA_DEV (DT_PROP(DT_NODELABEL(i2c7), rx-dma-channel) / DMA_CHANNEL_NUM)
 #define I2C7_RX_DMA_CHN (DT_PROP(DT_NODELABEL(i2c7), rx-dma-channel) % DMA_CHANNEL_NUM)
 #define I2C7_RX_DMA_DEV_2 (DT_PROP(DT_NODELABEL(i2c7), rx-dma-ext-channel) / DMA_CHANNEL_NUM)
