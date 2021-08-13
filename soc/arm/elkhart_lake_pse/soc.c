@@ -24,7 +24,6 @@
 
 #define FPEXCODIS BIT(10)
 
-#ifdef CONFIG_PM_SERVICE
 extern void sedi_pm_wake_isr(void);
 extern void sedi_pm_pciedev_isr(void);
 extern void sedi_pm_reset_prep_isr(void);
@@ -73,7 +72,6 @@ void __pm_reset_prep_callback(int interrupt_type)
 
 	k_sem_give(&pm_alert);
 }
-#endif
 
 static int config_cpu(void)
 {
@@ -130,7 +128,6 @@ static int elkhart_lake_pse_init(const struct device *arg)
 	sedi_hpet_set_min_delay(HPET_CMP_MIN_DELAY);
 #endif
 
-#ifdef CONFIG_PM_SERVICE
 #if !defined(CONFIG_DISABLE_SOC_PM_INIT)
 	/* register ISR */
 	IRQ_CONNECT(SEDI_IRQ_PMU_WAKE, 2, sedi_pm_wake_isr, 0, 0);
@@ -147,7 +144,6 @@ static int elkhart_lake_pse_init(const struct device *arg)
 	irq_enable(SEDI_IRQ_PMU_RESETPREP);
 	irq_enable(SEDI_IRQ_PMU_CRU_CLK_ACK);
 	irq_enable(SEDI_IRQ_DASHBOARD);
-#endif
 #endif
 
 	config_cpu();
