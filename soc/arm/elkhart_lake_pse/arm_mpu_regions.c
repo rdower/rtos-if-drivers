@@ -45,8 +45,8 @@ static struct arm_mpu_region mpu_regions[] = {
 			 REGION_RWEX_ATTR(PSE_AONRF_SIZE)),
 
 #if  defined(CONFIG_EN_MPU_L2SRAM_MEM_ACCESS)
-	MPU_REGION_ENTRY("L2SRAM", CONFIG_L2SRAM_RW_MEMORY_BASE_ADDRESS,
-			 REGION_RAM_ATTR(L2SRAM_RW_SIZE)),
+	MPU_REGION_ENTRY("L2SRAM", L2SRAM_MEM_START_ADDR,
+			 REGION_RAM_ATTR(REGION_1M)),
 #endif
 
 #if  defined(CONFIG_EN_MPU_ICCM_MEM_ACCESS)
@@ -60,13 +60,76 @@ static struct arm_mpu_region mpu_regions[] = {
 #endif
 
 #if defined(CONFIG_EN_L2SRAM_RELOCATION_MEM)
-#error "L2SRAM relocation not supported"
+#if defined(CONFIG_EN_MPU_L2SRAM_MEM_ACCESS)
+	MPU_REGION_ENTRY("SRAM_RO", CONFIG_L2SRAM_MEMORY_BASE_ADDRESS,
+			 REGION_FLASH_ATTR(REGION_2G)),
 #else
-	MPU_REGION_ENTRY("SRAM_RO", CONFIG_L2SRAM_RO_MEMORY_BASE_ADDRESS,
-			 REGION_FLASH_ATTR(L2SRAM_RO_SIZE)),
+#error "Please enable L2SRAM memory if you need to relocate to L2SRAM!!!"
+#endif
+#else
+	MPU_REGION_ENTRY("SRAM_RO", CONFIG_SRAM_BASE_ADDRESS,
+			 REGION_FLASH_ATTR(REGION_2G)),
 #endif
 };
 
-const struct arm_mpu_config mpu_config = {
+struct arm_mpu_config mpu_config = {
 	.num_regions = ARRAY_SIZE(mpu_regions), .mpu_regions = mpu_regions,
 };
+
+int mpu_config_init(void)
+{
+	int nsize, index;
+	uint32_t asize;
+
+	LOG_DBG("%s\n", __func__);
+
+#if CONFIG_EN_L2SRAM_RELOCATION_MEM
+	uint32_t rsize =
+		(u32_t)(_l2sram_mpu_ro_region_end - __l2sram_text_start);
+
+	LOG_DBG("L2SRAM Relocation text_rodata section size:%x\n", rsize);
+#else
+	uint32_t rsize = (uint32_t)(_ram_ro_end - _ram_ro_start);
+
+	LOG_DBG("Kernel text_rodata section size:%x\n", rsize);
+#endif
+
+	for (nsize = 0;; nsize++) {
+		uint32_t size = (uint32_t)0x1 << nsize;
+
+		if (size > CONFIG_SRAM_SIZE * MEM_SIZE_1K) {
+			__ASSERT_NO_MSG(0);
+			return -EINVAL;
+		}
+
+		if (size == (uint32_t)rsize) {
+			break;
+		}
+	}
+
+	asize = ((nsize - 1) << MPU_RASR_SIZE_Pos) & MPU_RASR_SIZE_Msk;
+	for (index = 0; index < mpu_config.num_regions; index++) {
+		arm_mpu_region_attr_t attr = REGION_FLASH_ATTR(asize);
+		arm_mpu_region_attr_t *p = &mpu_config.mpu_regions[index].attr;
+		uint32_t _asize = (mpu_config.mpu_regions[index].attr.rasr &
+				   MPU_RASR_SIZE_Msk);
+
+		if (_asize != REGION_2G) {
+			continue;
+		}
+
+		LOG_DBG("base:%x attr:%x\n",
+			mpu_config.mpu_regions[index].base,
+			mpu_config.mpu_regions[index].attr.rasr);
+
+		*p = attr;
+		return 0;
+	}
+
+	return -ENOENT;
+}
+
+/*
+ * SYS_INIT(mpu_config_init, PRE_KERNEL_1,
+ *	 CONFIG_KERNEL_INIT_PRIORITY_OBJECTS);
+ */

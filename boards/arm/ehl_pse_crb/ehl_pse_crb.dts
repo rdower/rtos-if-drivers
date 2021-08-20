@@ -12,8 +12,8 @@
 	compatible = "intel,pse";
 
 	chosen {
-		zephyr,flash = &l2sram_ro;
-		zephyr,sram = &l2sram_rw;
+		zephyr,flash = &l2sram;
+		zephyr,sram = &l2sram;
 		zephyr,iccm = &iccm;
 		zephyr,dccm = &dccm;
 		zephyr,aonrf = &aon_rf;

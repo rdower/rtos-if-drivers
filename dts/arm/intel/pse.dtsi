@@ -17,18 +17,11 @@
 		};
 	};
 
-	l2sram_ro: memory@60000000{
+	l2sram: memory@60000000{
 		device_type = "memory";
 		compatible = "mmio-sram";
-		label = "l2sram_ro";
-		reg = <0x60000000 0x80000>;
-	};
-
-	l2sram_rw: memory@60080000{
-		device_type = "memory";
-		compatible = "mmio-sram";
-		label = "l2sram_rw";
-		reg = <0x60080000 0x80000>;
+		label = "l2sram";
+		reg = <0x60000000 0x100000>;
 	};
 
 	iccm: memory@0{

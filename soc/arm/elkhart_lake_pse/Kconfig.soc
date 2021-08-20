@@ -53,37 +53,21 @@ config DCCM_MEMORY_SIZE
 	help
 	  Set PSE DCCM memory size
 
-config L2SRAM_RO_MEMORY_BASE_ADDRESS
+config L2SRAM_MEMORY_BASE_ADDRESS
 	hex
-	prompt "L2SRAM RO base address"
+	prompt "L2SRAM base address"
 	default $(dt_node_reg_addr_hex,/memory@60000000)
-	range 0x60000000 0x60080000
+	range 0x60000000 0x60100000
 	help
-	  Set PSE L2SRAM RO memory base address
+	  Set PSE L2SRAM memory base address
 
-config L2SRAM_RO_MEMORY_SIZE
+config L2SRAM_MEMORY_SIZE
 	hex
-	prompt "L2SRAM RO memory size"
+	prompt "L2SRAM memory size"
 	default $(dt_node_reg_size_hex,/memory@60000000)
-	range 0 0x80000
+	range 0 0x100000
 	help
-	  Set PSE L2SRAM RO memory size
-
-config L2SRAM_RW_MEMORY_BASE_ADDRESS
-	hex
-	prompt "L2SRAM RW base address"
-	default $(dt_node_reg_addr_hex,/memory@60080000)
-	range 0x60080000 0x60100000
-	help
-	  Set PSE L2SRAM RW memory base address
-
-config L2SRAM_RW_MEMORY_SIZE
-	hex
-	prompt "L2SRAM RW memory size"
-	default $(dt_node_reg_size_hex,/memory@60080000)
-	range 0 0x80000
-	help
-	  Set PSE L2SRAM RW memory size
+	  Set PSE L2SRAM memory size
 
 config AONRF_MEMORY_BASE_ADDRESS
 	hex

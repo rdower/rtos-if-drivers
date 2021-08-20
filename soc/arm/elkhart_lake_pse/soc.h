@@ -94,6 +94,7 @@ typedef enum IRQn {
 /* Start Address of ICCM, DCCM and L2SRAM Memories */
 #define ICCM_MEM_START_ADDR    (0x0000000)
 #define DCCM_MEM_START_ADDR    (0x20000000)
+#define L2SRAM_MEM_START_ADDR  (0x60000000)
 
 /* uart configuration settings */
 #if defined(CONFIG_UART_STELLARIS)
