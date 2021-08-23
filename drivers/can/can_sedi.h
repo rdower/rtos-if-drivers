@@ -112,7 +112,7 @@ struct can_sedi_data_t {
 	can_parity_callback_t parity_cb;
 	can_state_change_isr_t state_cb;
 	int32_t attached_filter_count;
-#ifdef CONFIG_DEVICE_POWER_MANAGEMENT
+#ifdef CONFIG_PM_DEVICE
 	uint32_t device_power_state;
 #endif
 

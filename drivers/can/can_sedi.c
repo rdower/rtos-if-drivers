@@ -140,12 +140,14 @@ static int can_sedi_set_mode(const struct device *dev, enum can_mode mode)
 	case CAN_SILENT_LOOPBACK_MODE:
 		sedi_can_mode = CAN_MODE_LOOPBACK_INTERNAL;
 		break;
+#ifdef CONFIG_CAN_FD_MODE
 	case CAN_FD_MODE:
 		sedi_can_mode = CAN_MODE_FD;
 		break;
 	case CAN_FD_BPRS_MODE:
 		sedi_can_mode = CAN_MODE_FDBS;
 		break;
+#endif
 	default:
 		goto err;
 	}
@@ -178,7 +180,6 @@ static int can_sedi_set_timing(const struct device *dev,
 		sedi_can_set_bitrate(data->id, &arbit_timing);
 	} else {
 		ret = -EINVAL;
-		return ret;
 	}
 
 #ifdef CONFIG_CAN_FD_MODE
@@ -974,6 +975,7 @@ int can_sedi_ioctl(const struct device *dev, uint32_t can_cmd, void *data)
 	case CAN_IOCTL_POWER_ON:
 		sedi_can_power_control(can_dev->id, 1);
 		break;
+#if defined(CONFIG_CAN_FD_MODE)
 	case CAN_IOCTL_FD_MODE:
 		fd_val =  *((uint32_t *)(data));
 		if ((!!fd_val) == true) {
@@ -982,6 +984,7 @@ int can_sedi_ioctl(const struct device *dev, uint32_t can_cmd, void *data)
 			ret = sedi_can_set_mode(can_dev->id, CAN_MODE_NORMAL);
 		}
 		break;
+#endif
 	default:
 		ret = -1;
 	}
