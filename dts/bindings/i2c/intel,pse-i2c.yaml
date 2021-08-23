@@ -17,17 +17,17 @@ properties:
     interrupts:
       required: true
 
-    tx-dma-channel:
+    tx_dma_channel:
       required: false
       type: int
       description: If use I2C tx dma method, this is the dma channel for i2C tx.
 
-    rx-dma-channel:
+    rx_dma_channel:
       required: false
       type: int
       description: If use I2C rx dma method, this is the dma channel for rx
 
-    rx-dma-ext-channel:
+    rx_dma_ext_channel:
       required: false
       type: int
       description: If use I2C rx dma method, this is the second dma channel for rx

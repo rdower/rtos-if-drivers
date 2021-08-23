@@ -17,12 +17,12 @@ properties:
     interrupts:
       required: true
 
-    tx-dma-channel:
+    tx_dma_channel:
       required: false
       type: int
       description: If use spi tx dma method, this is the dma channel for tx.
 
-    rx-dma-channel:
+    rx_dma_channel:
       required: false
       type: int
       description: If use spi rx dma method, this is the dma channel for rx.

@@ -468,16 +468,16 @@ static int spi_sedi_device_action_cb(const struct device *dev,
 #endif /* CONFIG_PM_DEVICE */
 
 #if DT_NODE_HAS_STATUS(DT_NODELABEL(spi0), okay)
-#if DT_NODE_HAS_PROP(DT_NODELABEL(spi0), tx-dma-channel)
-#define SPI0_TX_DMA_DEV (DT_PROP(DT_NODELABEL(spi0), tx-dma-channel) / DMA_CHANNEL_NUM)
-#define SPI0_TX_DMA_CHN (DT_PROP(DT_NODELABEL(spi0), tx-dma-channel) % DMA_CHANNEL_NUM)
+#if DT_NODE_HAS_PROP(DT_NODELABEL(spi0), tx_dma_channel)
+#define SPI0_TX_DMA_DEV (DT_PROP(DT_NODELABEL(spi0), tx_dma_channel) / DMA_CHANNEL_NUM)
+#define SPI0_TX_DMA_CHN (DT_PROP(DT_NODELABEL(spi0), tx_dma_channel) % DMA_CHANNEL_NUM)
 #else
 #define SPI0_TX_DMA_DEV SPI_NOT_USE_DMA
 #define SPI0_TX_DMA_CHN SPI_NOT_USE_DMA
 #endif
-#if DT_NODE_HAS_PROP(DT_NODELABEL(spi0), rx-dma-channel)
-#define SPI0_RX_DMA_DEV (DT_PROP(DT_NODELABEL(spi0), rx-dma-channel) / DMA_CHANNEL_NUM)
-#define SPI0_RX_DMA_CHN (DT_PROP(DT_NODELABEL(spi0), rx-dma-channel) % DMA_CHANNEL_NUM)
+#if DT_NODE_HAS_PROP(DT_NODELABEL(spi0), rx_dma_channel)
+#define SPI0_RX_DMA_DEV (DT_PROP(DT_NODELABEL(spi0), rx_dma_channel) / DMA_CHANNEL_NUM)
+#define SPI0_RX_DMA_CHN (DT_PROP(DT_NODELABEL(spi0), rx_dma_channel) % DMA_CHANNEL_NUM)
 #else
 #define SPI0_RX_DMA_DEV SPI_NOT_USE_DMA
 #define SPI0_RX_DMA_CHN SPI_NOT_USE_DMA
@@ -485,16 +485,16 @@ static int spi_sedi_device_action_cb(const struct device *dev,
 CREATE_SEDI_SPI_INSTANCE(0);
 #endif
 #if DT_NODE_HAS_STATUS(DT_NODELABEL(spi1), okay)
-#if DT_NODE_HAS_PROP(DT_NODELABEL(spi1), tx-dma-channel)
-#define SPI1_TX_DMA_DEV (DT_PROP(DT_NODELABEL(spi1), tx-dma-channel) / DMA_CHANNEL_NUM)
-#define SPI1_TX_DMA_CHN (DT_PROP(DT_NODELABEL(spi1), tx-dma-channel) % DMA_CHANNEL_NUM)
+#if DT_NODE_HAS_PROP(DT_NODELABEL(spi1), tx_dma_channel)
+#define SPI1_TX_DMA_DEV (DT_PROP(DT_NODELABEL(spi1), tx_dma_channel) / DMA_CHANNEL_NUM)
+#define SPI1_TX_DMA_CHN (DT_PROP(DT_NODELABEL(spi1), tx_dma_channel) % DMA_CHANNEL_NUM)
 #else
 #define SPI1_TX_DMA_DEV SPI_NOT_USE_DMA
 #define SPI1_TX_DMA_CHN SPI_NOT_USE_DMA
 #endif
-#if DT_NODE_HAS_PROP(DT_NODELABEL(spi1), rx-dma-channel)
-#define SPI1_RX_DMA_DEV (DT_PROP(DT_NODELABEL(spi1), rx-dma-channel) / DMA_CHANNEL_NUM)
-#define SPI1_RX_DMA_CHN (DT_PROP(DT_NODELABEL(spi1), rx-dma-channel) % DMA_CHANNEL_NUM)
+#if DT_NODE_HAS_PROP(DT_NODELABEL(spi1), rx_dma_channel)
+#define SPI1_RX_DMA_DEV (DT_PROP(DT_NODELABEL(spi1), rx_dma_channel) / DMA_CHANNEL_NUM)
+#define SPI1_RX_DMA_CHN (DT_PROP(DT_NODELABEL(spi1), rx_dma_channel) % DMA_CHANNEL_NUM)
 #else
 #define SPI1_RX_DMA_DEV SPI_NOT_USE_DMA
 #define SPI1_RX_DMA_CHN SPI_NOT_USE_DMA
@@ -502,16 +502,16 @@ CREATE_SEDI_SPI_INSTANCE(0);
 CREATE_SEDI_SPI_INSTANCE(1);
 #endif
 #if DT_NODE_HAS_STATUS(DT_NODELABEL(spi2), okay)
-#if DT_NODE_HAS_PROP(DT_NODELABEL(spi2), tx-dma-channel)
-#define SPI2_TX_DMA_DEV (DT_PROP(DT_NODELABEL(spi2), tx-dma-channel) / DMA_CHANNEL_NUM)
-#define SPI2_TX_DMA_CHN (DT_PROP(DT_NODELABEL(spi2), tx-dma-channel) % DMA_CHANNEL_NUM)
+#if DT_NODE_HAS_PROP(DT_NODELABEL(spi2), tx_dma_channel)
+#define SPI2_TX_DMA_DEV (DT_PROP(DT_NODELABEL(spi2), tx_dma_channel) / DMA_CHANNEL_NUM)
+#define SPI2_TX_DMA_CHN (DT_PROP(DT_NODELABEL(spi2), tx_dma_channel) % DMA_CHANNEL_NUM)
 #else
 #define SPI2_TX_DMA_DEV SPI_NOT_USE_DMA
 #define SPI2_TX_DMA_CHN SPI_NOT_USE_DMA
 #endif
-#if DT_NODE_HAS_PROP(DT_NODELABEL(spi2), rx-dma-channel)
-#define SPI2_RX_DMA_DEV (DT_PROP(DT_NODELABEL(spi2), rx-dma-channel) / DMA_CHANNEL_NUM)
-#define SPI2_RX_DMA_CHN (DT_PROP(DT_NODELABEL(spi2), rx-dma-channel) % DMA_CHANNEL_NUM)
+#if DT_NODE_HAS_PROP(DT_NODELABEL(spi2), rx_dma_channel)
+#define SPI2_RX_DMA_DEV (DT_PROP(DT_NODELABEL(spi2), rx_dma_channel) / DMA_CHANNEL_NUM)
+#define SPI2_RX_DMA_CHN (DT_PROP(DT_NODELABEL(spi2), rx_dma_channel) % DMA_CHANNEL_NUM)
 #else
 #define SPI2_RX_DMA_DEV SPI_NOT_USE_DMA
 #define SPI2_RX_DMA_CHN SPI_NOT_USE_DMA
@@ -519,16 +519,16 @@ CREATE_SEDI_SPI_INSTANCE(1);
 CREATE_SEDI_SPI_INSTANCE(2);
 #endif
 #if DT_NODE_HAS_STATUS(DT_NODELABEL(spi3), okay)
-#if DT_NODE_HAS_PROP(DT_NODELABEL(spi3), tx-dma-channel)
-#define SPI3_TX_DMA_DEV (DT_PROP(DT_NODELABEL(spi3), tx-dma-channel) / DMA_CHANNEL_NUM)
-#define SPI3_TX_DMA_CHN (DT_PROP(DT_NODELABEL(spi3), tx-dma-channel) % DMA_CHANNEL_NUM)
+#if DT_NODE_HAS_PROP(DT_NODELABEL(spi3), tx_dma_channel)
+#define SPI3_TX_DMA_DEV (DT_PROP(DT_NODELABEL(spi3), tx_dma_channel) / DMA_CHANNEL_NUM)
+#define SPI3_TX_DMA_CHN (DT_PROP(DT_NODELABEL(spi3), tx_dma_channel) % DMA_CHANNEL_NUM)
 #else
 #define SPI3_TX_DMA_DEV SPI_NOT_USE_DMA
 #define SPI3_TX_DMA_CHN SPI_NOT_USE_DMA
 #endif
-#if DT_NODE_HAS_PROP(DT_NODELABEL(spi3), rx-dma-channel)
-#define SPI3_RX_DMA_DEV (DT_PROP(DT_NODELABEL(spi3), rx-dma-channel) / DMA_CHANNEL_NUM)
-#define SPI3_RX_DMA_CHN (DT_PROP(DT_NODELABEL(spi3), rx-dma-channel) % DMA_CHANNEL_NUM)
+#if DT_NODE_HAS_PROP(DT_NODELABEL(spi3), rx_dma_channel)
+#define SPI3_RX_DMA_DEV (DT_PROP(DT_NODELABEL(spi3), rx_dma_channel) / DMA_CHANNEL_NUM)
+#define SPI3_RX_DMA_CHN (DT_PROP(DT_NODELABEL(spi3), rx_dma_channel) % DMA_CHANNEL_NUM)
 #else
 #define SPI3_RX_DMA_DEV SPI_NOT_USE_DMA
 #define SPI3_RX_DMA_CHN SPI_NOT_USE_DMA

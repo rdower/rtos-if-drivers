@@ -352,19 +352,19 @@ static int i2c_sedi_device_ctrl(const struct device *dev, enum pm_device_action 
 #endif /* CONFIG_PM_DEVICE */
 
 #if DT_NODE_HAS_STATUS(DT_NODELABEL(i2c0), okay)
-#if DT_NODE_HAS_PROP(DT_NODELABEL(i2c0), tx-dma-channel)
-#define I2C0_TX_DMA_DEV (DT_PROP(DT_NODELABEL(i2c0), tx-dma-channel) / DMA_CHANNEL_NUM)
-#define I2C0_TX_DMA_CHN (DT_PROP(DT_NODELABEL(i2c0), tx-dma-channel) % DMA_CHANNEL_NUM)
+#if DT_NODE_HAS_PROP(DT_NODELABEL(i2c0), tx_dma_channel)
+#define I2C0_TX_DMA_DEV (DT_PROP(DT_NODELABEL(i2c0), tx_dma_channel) / DMA_CHANNEL_NUM)
+#define I2C0_TX_DMA_CHN (DT_PROP(DT_NODELABEL(i2c0), tx_dma_channel) % DMA_CHANNEL_NUM)
 #else
 #define I2C0_TX_DMA_DEV I2C_NOT_USE_DMA
 #define I2C0_TX_DMA_CHN I2C_NOT_USE_DMA
 #endif
-#if (DT_NODE_HAS_PROP(DT_NODELABEL(i2c0), rx-dma-channel) && \
-	DT_NODE_HAS_PROP(DT_NODELABEL(i2c0), rx-dma-ext-channel))
-#define I2C0_RX_DMA_DEV (DT_PROP(DT_NODELABEL(i2c0), rx-dma-channel) / DMA_CHANNEL_NUM)
-#define I2C0_RX_DMA_CHN (DT_PROP(DT_NODELABEL(i2c0), rx-dma-channel) % DMA_CHANNEL_NUM)
-#define I2C0_RX_DMA_DEV_2 (DT_PROP(DT_NODELABEL(i2c0), rx-dma-ext-channel) / DMA_CHANNEL_NUM)
-#define I2C0_RX_DMA_CHN_2 (DT_PROP(DT_NODELABEL(i2c0), rx-dma-ext-channel) % DMA_CHANNEL_NUM)
+#if (DT_NODE_HAS_PROP(DT_NODELABEL(i2c0), rx_dma_channel) && \
+	DT_NODE_HAS_PROP(DT_NODELABEL(i2c0), rx_dma_ext_channel))
+#define I2C0_RX_DMA_DEV (DT_PROP(DT_NODELABEL(i2c0), rx_dma_channel) / DMA_CHANNEL_NUM)
+#define I2C0_RX_DMA_CHN (DT_PROP(DT_NODELABEL(i2c0), rx_dma_channel) % DMA_CHANNEL_NUM)
+#define I2C0_RX_DMA_DEV_2 (DT_PROP(DT_NODELABEL(i2c0), rx_dma_ext_channel) / DMA_CHANNEL_NUM)
+#define I2C0_RX_DMA_CHN_2 (DT_PROP(DT_NODELABEL(i2c0), rx_dma_ext_channel) % DMA_CHANNEL_NUM)
 #else
 #define I2C0_RX_DMA_DEV I2C_NOT_USE_DMA
 #define I2C0_RX_DMA_CHN I2C_NOT_USE_DMA
@@ -374,19 +374,19 @@ static int i2c_sedi_device_ctrl(const struct device *dev, enum pm_device_action 
 CREATE_I2C_INSTANCE(0);
 #endif
 #if DT_NODE_HAS_STATUS(DT_NODELABEL(i2c1), okay)
-#if DT_NODE_HAS_PROP(DT_NODELABEL(i2c1), tx-dma-channel)
-#define I2C1_TX_DMA_DEV (DT_PROP(DT_NODELABEL(i2c1), tx-dma-channel) / DMA_CHANNEL_NUM)
-#define I2C1_TX_DMA_CHN (DT_PROP(DT_NODELABEL(i2c1), tx-dma-channel) % DMA_CHANNEL_NUM)
+#if DT_NODE_HAS_PROP(DT_NODELABEL(i2c1), tx_dma_channel)
+#define I2C1_TX_DMA_DEV (DT_PROP(DT_NODELABEL(i2c1), tx_dma_channel) / DMA_CHANNEL_NUM)
+#define I2C1_TX_DMA_CHN (DT_PROP(DT_NODELABEL(i2c1), tx_dma_channel) % DMA_CHANNEL_NUM)
 #else
 #define I2C1_TX_DMA_DEV I2C_NOT_USE_DMA
 #define I2C1_TX_DMA_CHN I2C_NOT_USE_DMA
 #endif
-#if (DT_NODE_HAS_PROP(DT_NODELABEL(i2c1), rx-dma-channel) && \
-	DT_NODE_HAS_PROP(DT_NODELABEL(i2c1), rx-dma-ext-channel))
-#define I2C1_RX_DMA_DEV (DT_PROP(DT_NODELABEL(i2c1), rx-dma-channel) / DMA_CHANNEL_NUM)
-#define I2C1_RX_DMA_CHN (DT_PROP(DT_NODELABEL(i2c1), rx-dma-channel) % DMA_CHANNEL_NUM)
-#define I2C1_RX_DMA_DEV_2 (DT_PROP(DT_NODELABEL(i2c1), rx-dma-ext-channel) / DMA_CHANNEL_NUM)
-#define I2C1_RX_DMA_CHN_2 (DT_PROP(DT_NODELABEL(i2c1), rx-dma-ext-channel) % DMA_CHANNEL_NUM)
+#if (DT_NODE_HAS_PROP(DT_NODELABEL(i2c1), rx_dma_channel) && \
+	DT_NODE_HAS_PROP(DT_NODELABEL(i2c1), rx_dma_ext_channel))
+#define I2C1_RX_DMA_DEV (DT_PROP(DT_NODELABEL(i2c1), rx_dma_channel) / DMA_CHANNEL_NUM)
+#define I2C1_RX_DMA_CHN (DT_PROP(DT_NODELABEL(i2c1), rx_dma_channel) % DMA_CHANNEL_NUM)
+#define I2C1_RX_DMA_DEV_2 (DT_PROP(DT_NODELABEL(i2c1), rx_dma_ext_channel) / DMA_CHANNEL_NUM)
+#define I2C1_RX_DMA_CHN_2 (DT_PROP(DT_NODELABEL(i2c1), rx_dma_ext_channel) % DMA_CHANNEL_NUM)
 #else
 #define I2C1_RX_DMA_DEV I2C_NOT_USE_DMA
 #define I2C1_RX_DMA_CHN I2C_NOT_USE_DMA
@@ -396,19 +396,19 @@ CREATE_I2C_INSTANCE(0);
 CREATE_I2C_INSTANCE(1);
 #endif
 #if DT_NODE_HAS_STATUS(DT_NODELABEL(i2c2), okay)
-#if DT_NODE_HAS_PROP(DT_NODELABEL(i2c2), tx-dma-channel)
-#define I2C2_TX_DMA_DEV (DT_PROP(DT_NODELABEL(i2c2), tx-dma-channel) / DMA_CHANNEL_NUM)
-#define I2C2_TX_DMA_CHN (DT_PROP(DT_NODELABEL(i2c2), tx-dma-channel) % DMA_CHANNEL_NUM)
+#if DT_NODE_HAS_PROP(DT_NODELABEL(i2c2), tx_dma_channel)
+#define I2C2_TX_DMA_DEV (DT_PROP(DT_NODELABEL(i2c2), tx_dma_channel) / DMA_CHANNEL_NUM)
+#define I2C2_TX_DMA_CHN (DT_PROP(DT_NODELABEL(i2c2), tx_dma_channel) % DMA_CHANNEL_NUM)
 #else
 #define I2C2_TX_DMA_DEV I2C_NOT_USE_DMA
 #define I2C2_TX_DMA_CHN I2C_NOT_USE_DMA
 #endif
-#if (DT_NODE_HAS_PROP(DT_NODELABEL(i2c2), rx-dma-channel) && \
-	DT_NODE_HAS_PROP(DT_NODELABEL(i2c2), rx-dma-ext-channel))
-#define I2C2_RX_DMA_DEV (DT_PROP(DT_NODELABEL(i2c2), rx-dma-channel) / DMA_CHANNEL_NUM)
-#define I2C2_RX_DMA_CHN (DT_PROP(DT_NODELABEL(i2c2), rx-dma-channel) % DMA_CHANNEL_NUM)
-#define I2C2_RX_DMA_DEV_2 (DT_PROP(DT_NODELABEL(i2c2), rx-dma-ext-channel) / DMA_CHANNEL_NUM)
-#define I2C2_RX_DMA_CHN_2 (DT_PROP(DT_NODELABEL(i2c2), rx-dma-ext-channel) % DMA_CHANNEL_NUM)
+#if (DT_NODE_HAS_PROP(DT_NODELABEL(i2c2), rx_dma_channel) && \
+	DT_NODE_HAS_PROP(DT_NODELABEL(i2c2), rx_dma_ext_channel))
+#define I2C2_RX_DMA_DEV (DT_PROP(DT_NODELABEL(i2c2), rx_dma_channel) / DMA_CHANNEL_NUM)
+#define I2C2_RX_DMA_CHN (DT_PROP(DT_NODELABEL(i2c2), rx_dma_channel) % DMA_CHANNEL_NUM)
+#define I2C2_RX_DMA_DEV_2 (DT_PROP(DT_NODELABEL(i2c2), rx_dma_ext_channel) / DMA_CHANNEL_NUM)
+#define I2C2_RX_DMA_CHN_2 (DT_PROP(DT_NODELABEL(i2c2), rx_dma_ext_channel) % DMA_CHANNEL_NUM)
 #else
 #define I2C2_RX_DMA_DEV I2C_NOT_USE_DMA
 #define I2C2_RX_DMA_CHN I2C_NOT_USE_DMA
@@ -418,19 +418,19 @@ CREATE_I2C_INSTANCE(1);
 CREATE_I2C_INSTANCE(2);
 #endif
 #if DT_NODE_HAS_STATUS(DT_NODELABEL(i2c3), okay)
-#if DT_NODE_HAS_PROP(DT_NODELABEL(i2c3), tx-dma-channel)
-#define I2C3_TX_DMA_DEV (DT_PROP(DT_NODELABEL(i2c3), tx-dma-channel) / DMA_CHANNEL_NUM)
-#define I2C3_TX_DMA_CHN (DT_PROP(DT_NODELABEL(i2c3), tx-dma-channel) % DMA_CHANNEL_NUM)
+#if DT_NODE_HAS_PROP(DT_NODELABEL(i2c3), tx_dma_channel)
+#define I2C3_TX_DMA_DEV (DT_PROP(DT_NODELABEL(i2c3), tx_dma_channel) / DMA_CHANNEL_NUM)
+#define I2C3_TX_DMA_CHN (DT_PROP(DT_NODELABEL(i2c3), tx_dma_channel) % DMA_CHANNEL_NUM)
 #else
 #define I2C3_TX_DMA_DEV I2C_NOT_USE_DMA
 #define I2C3_TX_DMA_CHN I2C_NOT_USE_DMA
 #endif
-#if (DT_NODE_HAS_PROP(DT_NODELABEL(i2c3), rx-dma-channel) && \
-	DT_NODE_HAS_PROP(DT_NODELABEL(i2c3), rx-dma-ext-channel))
-#define I2C3_RX_DMA_DEV (DT_PROP(DT_NODELABEL(i2c3), rx-dma-channel) / DMA_CHANNEL_NUM)
-#define I2C3_RX_DMA_CHN (DT_PROP(DT_NODELABEL(i2c3), rx-dma-channel) % DMA_CHANNEL_NUM)
-#define I2C3_RX_DMA_DEV_2 (DT_PROP(DT_NODELABEL(i2c3), rx-dma-ext-channel) / DMA_CHANNEL_NUM)
-#define I2C3_RX_DMA_CHN_2 (DT_PROP(DT_NODELABEL(i2c3), rx-dma-ext-channel) % DMA_CHANNEL_NUM)
+#if (DT_NODE_HAS_PROP(DT_NODELABEL(i2c3), rx_dma_channel) && \
+	DT_NODE_HAS_PROP(DT_NODELABEL(i2c3), rx_dma_ext_channel))
+#define I2C3_RX_DMA_DEV (DT_PROP(DT_NODELABEL(i2c3), rx_dma_channel) / DMA_CHANNEL_NUM)
+#define I2C3_RX_DMA_CHN (DT_PROP(DT_NODELABEL(i2c3), rx_dma_channel) % DMA_CHANNEL_NUM)
+#define I2C3_RX_DMA_DEV_2 (DT_PROP(DT_NODELABEL(i2c3), rx_dma_ext_channel) / DMA_CHANNEL_NUM)
+#define I2C3_RX_DMA_CHN_2 (DT_PROP(DT_NODELABEL(i2c3), rx_dma_ext_channel) % DMA_CHANNEL_NUM)
 #else
 #define I2C3_RX_DMA_DEV I2C_NOT_USE_DMA
 #define I2C3_RX_DMA_CHN I2C_NOT_USE_DMA
@@ -440,19 +440,19 @@ CREATE_I2C_INSTANCE(2);
 CREATE_I2C_INSTANCE(3);
 #endif
 #if DT_NODE_HAS_STATUS(DT_NODELABEL(i2c4), okay)
-#if DT_NODE_HAS_PROP(DT_NODELABEL(i2c4), tx-dma-channel)
-#define I2C4_TX_DMA_DEV (DT_PROP(DT_NODELABEL(i2c4), tx-dma-channel) / DMA_CHANNEL_NUM)
-#define I2C4_TX_DMA_CHN (DT_PROP(DT_NODELABEL(i2c4), tx-dma-channel) % DMA_CHANNEL_NUM)
+#if DT_NODE_HAS_PROP(DT_NODELABEL(i2c4), tx_dma_channel)
+#define I2C4_TX_DMA_DEV (DT_PROP(DT_NODELABEL(i2c4), tx_dma_channel) / DMA_CHANNEL_NUM)
+#define I2C4_TX_DMA_CHN (DT_PROP(DT_NODELABEL(i2c4), tx_dma_channel) % DMA_CHANNEL_NUM)
 #else
 #define I2C4_TX_DMA_DEV I2C_NOT_USE_DMA
 #define I2C4_TX_DMA_CHN I2C_NOT_USE_DMA
 #endif
-#if (DT_NODE_HAS_PROP(DT_NODELABEL(i2c4), rx-dma-channel) && \
-	DT_NODE_HAS_PROP(DT_NODELABEL(i2c4), rx-dma-ext-channel))
-#define I2C4_RX_DMA_DEV (DT_PROP(DT_NODELABEL(i2c4), rx-dma-channel) / DMA_CHANNEL_NUM)
-#define I2C4_RX_DMA_CHN (DT_PROP(DT_NODELABEL(i2c4), rx-dma-channel) % DMA_CHANNEL_NUM)
-#define I2C4_RX_DMA_DEV_2 (DT_PROP(DT_NODELABEL(i2c4), rx-dma-ext-channel) / DMA_CHANNEL_NUM)
-#define I2C4_RX_DMA_CHN_2 (DT_PROP(DT_NODELABEL(i2c4), rx-dma-ext-channel) % DMA_CHANNEL_NUM)
+#if (DT_NODE_HAS_PROP(DT_NODELABEL(i2c4), rx_dma_channel) && \
+	DT_NODE_HAS_PROP(DT_NODELABEL(i2c4), rx_dma_ext_channel))
+#define I2C4_RX_DMA_DEV (DT_PROP(DT_NODELABEL(i2c4), rx_dma_channel) / DMA_CHANNEL_NUM)
+#define I2C4_RX_DMA_CHN (DT_PROP(DT_NODELABEL(i2c4), rx_dma_channel) % DMA_CHANNEL_NUM)
+#define I2C4_RX_DMA_DEV_2 (DT_PROP(DT_NODELABEL(i2c4), rx_dma_ext_channel) / DMA_CHANNEL_NUM)
+#define I2C4_RX_DMA_CHN_2 (DT_PROP(DT_NODELABEL(i2c4), rx_dma_ext_channel) % DMA_CHANNEL_NUM)
 #else
 #define I2C4_RX_DMA_DEV I2C_NOT_USE_DMA
 #define I2C4_RX_DMA_CHN I2C_NOT_USE_DMA
@@ -462,19 +462,19 @@ CREATE_I2C_INSTANCE(3);
 CREATE_I2C_INSTANCE(4);
 #endif
 #if DT_NODE_HAS_STATUS(DT_NODELABEL(i2c5), okay)
-#if DT_NODE_HAS_PROP(DT_NODELABEL(i2c5), tx-dma-channel)
-#define I2C5_TX_DMA_DEV (DT_PROP(DT_NODELABEL(i2c5), tx-dma-channel) / DMA_CHANNEL_NUM)
-#define I2C5_TX_DMA_CHN (DT_PROP(DT_NODELABEL(i2c5), tx-dma-channel) % DMA_CHANNEL_NUM)
+#if DT_NODE_HAS_PROP(DT_NODELABEL(i2c5), tx_dma_channel)
+#define I2C5_TX_DMA_DEV (DT_PROP(DT_NODELABEL(i2c5), tx_dma_channel) / DMA_CHANNEL_NUM)
+#define I2C5_TX_DMA_CHN (DT_PROP(DT_NODELABEL(i2c5), tx_dma_channel) % DMA_CHANNEL_NUM)
 #else
 #define I2C5_TX_DMA_DEV I2C_NOT_USE_DMA
 #define I2C5_TX_DMA_CHN I2C_NOT_USE_DMA
 #endif
-#if (DT_NODE_HAS_PROP(DT_NODELABEL(i2c5), rx-dma-channel) && \
-	DT_NODE_HAS_PROP(DT_NODELABEL(i2c5), rx-dma-ext-channel))
-#define I2C5_RX_DMA_DEV (DT_PROP(DT_NODELABEL(i2c5), rx-dma-channel) / DMA_CHANNEL_NUM)
-#define I2C5_RX_DMA_CHN (DT_PROP(DT_NODELABEL(i2c5), rx-dma-channel) % DMA_CHANNEL_NUM)
-#define I2C5_RX_DMA_DEV_2 (DT_PROP(DT_NODELABEL(i2c5), rx-dma-ext-channel) / DMA_CHANNEL_NUM)
-#define I2C5_RX_DMA_CHN_2 (DT_PROP(DT_NODELABEL(i2c5), rx-dma-ext-channel) % DMA_CHANNEL_NUM)
+#if (DT_NODE_HAS_PROP(DT_NODELABEL(i2c5), rx_dma_channel) && \
+	DT_NODE_HAS_PROP(DT_NODELABEL(i2c5), rx_dma_ext_channel))
+#define I2C5_RX_DMA_DEV (DT_PROP(DT_NODELABEL(i2c5), rx_dma_channel) / DMA_CHANNEL_NUM)
+#define I2C5_RX_DMA_CHN (DT_PROP(DT_NODELABEL(i2c5), rx_dma_channel) % DMA_CHANNEL_NUM)
+#define I2C5_RX_DMA_DEV_2 (DT_PROP(DT_NODELABEL(i2c5), rx_dma_ext_channel) / DMA_CHANNEL_NUM)
+#define I2C5_RX_DMA_CHN_2 (DT_PROP(DT_NODELABEL(i2c5), rx_dma_ext_channel) % DMA_CHANNEL_NUM)
 #else
 #define I2C5_RX_DMA_DEV I2C_NOT_USE_DMA
 #define I2C5_RX_DMA_CHN I2C_NOT_USE_DMA
@@ -484,19 +484,19 @@ CREATE_I2C_INSTANCE(4);
 CREATE_I2C_INSTANCE(5);
 #endif
 #if DT_NODE_HAS_STATUS(DT_NODELABEL(i2c6), okay)
-#if DT_NODE_HAS_PROP(DT_NODELABEL(i2c6), tx-dma-channel)
-#define I2C6_TX_DMA_DEV (DT_PROP(DT_NODELABEL(i2c6), tx-dma-channel) / DMA_CHANNEL_NUM)
-#define I2C6_TX_DMA_CHN (DT_PROP(DT_NODELABEL(i2c6), tx-dma-channel) % DMA_CHANNEL_NUM)
+#if DT_NODE_HAS_PROP(DT_NODELABEL(i2c6), tx_dma_channel)
+#define I2C6_TX_DMA_DEV (DT_PROP(DT_NODELABEL(i2c6), tx_dma_channel) / DMA_CHANNEL_NUM)
+#define I2C6_TX_DMA_CHN (DT_PROP(DT_NODELABEL(i2c6), tx_dma_channel) % DMA_CHANNEL_NUM)
 #else
 #define I2C6_TX_DMA_DEV I2C_NOT_USE_DMA
 #define I2C6_TX_DMA_CHN I2C_NOT_USE_DMA
 #endif
-#if (DT_NODE_HAS_PROP(DT_NODELABEL(i2c6), rx-dma-channel) && \
-	DT_NODE_HAS_PROP(DT_NODELABEL(i2c6), rx-dma-ext-channel))
-#define I2C6_RX_DMA_DEV (DT_PROP(DT_NODELABEL(i2c6), rx-dma-channel) / DMA_CHANNEL_NUM)
-#define I2C6_RX_DMA_CHN (DT_PROP(DT_NODELABEL(i2c6), rx-dma-channel) % DMA_CHANNEL_NUM)
-#define I2C6_RX_DMA_DEV_2 (DT_PROP(DT_NODELABEL(i2c6), rx-dma-ext-channel) / DMA_CHANNEL_NUM)
-#define I2C6_RX_DMA_CHN_2 (DT_PROP(DT_NODELABEL(i2c6), rx-dma-ext-channel) % DMA_CHANNEL_NUM)
+#if (DT_NODE_HAS_PROP(DT_NODELABEL(i2c6), rx_dma_channel) && \
+	DT_NODE_HAS_PROP(DT_NODELABEL(i2c6), rx_dma_ext_channel))
+#define I2C6_RX_DMA_DEV (DT_PROP(DT_NODELABEL(i2c6), rx_dma_channel) / DMA_CHANNEL_NUM)
+#define I2C6_RX_DMA_CHN (DT_PROP(DT_NODELABEL(i2c6), rx_dma_channel) % DMA_CHANNEL_NUM)
+#define I2C6_RX_DMA_DEV_2 (DT_PROP(DT_NODELABEL(i2c6), rx_dma_ext_channel) / DMA_CHANNEL_NUM)
+#define I2C6_RX_DMA_CHN_2 (DT_PROP(DT_NODELABEL(i2c6), rx_dma_ext_channel) % DMA_CHANNEL_NUM)
 #else
 #define I2C6_RX_DMA_DEV I2C_NOT_USE_DMA
 #define I2C6_RX_DMA_CHN I2C_NOT_USE_DMA
@@ -506,19 +506,19 @@ CREATE_I2C_INSTANCE(5);
 CREATE_I2C_INSTANCE(6);
 #endif
 #if DT_NODE_HAS_STATUS(DT_NODELABEL(i2c7), okay)
-#if DT_NODE_HAS_PROP(DT_NODELABEL(i2c7), tx-dma-channel)
-#define I2C7_TX_DMA_DEV (DT_PROP(DT_NODELABEL(i2c7), tx-dma-channel) / DMA_CHANNEL_NUM)
-#define I2C7_TX_DMA_CHN (DT_PROP(DT_NODELABEL(i2c7), tx-dma-channel) % DMA_CHANNEL_NUM)
+#if DT_NODE_HAS_PROP(DT_NODELABEL(i2c7), tx_dma_channel)
+#define I2C7_TX_DMA_DEV (DT_PROP(DT_NODELABEL(i2c7), tx_dma_channel) / DMA_CHANNEL_NUM)
+#define I2C7_TX_DMA_CHN (DT_PROP(DT_NODELABEL(i2c7), tx_dma_channel) % DMA_CHANNEL_NUM)
 #else
 #define I2C7_TX_DMA_DEV I2C_NOT_USE_DMA
 #define I2C7_TX_DMA_CHN I2C_NOT_USE_DMA
 #endif
-#if (DT_NODE_HAS_PROP(DT_NODELABEL(i2c7), rx-dma-channel) && \
-	DT_NODE_HAS_PROP(DT_NODELABEL(i2c7), rx-dma-ext-channel))
-#define I2C7_RX_DMA_DEV (DT_PROP(DT_NODELABEL(i2c7), rx-dma-channel) / DMA_CHANNEL_NUM)
-#define I2C7_RX_DMA_CHN (DT_PROP(DT_NODELABEL(i2c7), rx-dma-channel) % DMA_CHANNEL_NUM)
-#define I2C7_RX_DMA_DEV_2 (DT_PROP(DT_NODELABEL(i2c7), rx-dma-ext-channel) / DMA_CHANNEL_NUM)
-#define I2C7_RX_DMA_CHN_2 (DT_PROP(DT_NODELABEL(i2c7), rx-dma-ext-channel) % DMA_CHANNEL_NUM)
+#if (DT_NODE_HAS_PROP(DT_NODELABEL(i2c7), rx_dma_channel) && \
+	DT_NODE_HAS_PROP(DT_NODELABEL(i2c7), rx_dma_ext_channel))
+#define I2C7_RX_DMA_DEV (DT_PROP(DT_NODELABEL(i2c7), rx_dma_channel) / DMA_CHANNEL_NUM)
+#define I2C7_RX_DMA_CHN (DT_PROP(DT_NODELABEL(i2c7), rx_dma_channel) % DMA_CHANNEL_NUM)
+#define I2C7_RX_DMA_DEV_2 (DT_PROP(DT_NODELABEL(i2c7), rx_dma_ext_channel) / DMA_CHANNEL_NUM)
+#define I2C7_RX_DMA_CHN_2 (DT_PROP(DT_NODELABEL(i2c7), rx_dma_ext_channel) % DMA_CHANNEL_NUM)
 #else
 #define I2C7_RX_DMA_DEV I2C_NOT_USE_DMA
 #define I2C7_RX_DMA_CHN I2C_NOT_USE_DMA
