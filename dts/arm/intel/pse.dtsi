@@ -355,7 +355,7 @@
 		label = "I2C_2";
 		interrupts = <28 2>;
 		interrupt-parent = <&nvic>;
-		status = "disabled";
+		status = "okay";
 		};
 
 	i2c3: i2c@40106000 {
@@ -409,7 +409,7 @@
 		label = "I2C_7";
 		interrupts = <33 2>;
 		interrupt-parent = <&nvic>;
-		status = "disabled";
+		status = "okay";
 		};
 
 	spi0: spi@48100000 {
