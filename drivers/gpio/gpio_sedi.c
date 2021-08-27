@@ -12,9 +12,12 @@
 
 #define DT_DRV_COMPAT intel_pse_gpio
 
+#define PINS_PER_PORT (32)
+
 struct gpio_sedi_config {
 	struct gpio_driver_config common;
 	sedi_gpio_t device;
+	sedi_gpio_port_t port;
 	uint32_t pin_nums;
 };
 
@@ -137,25 +140,13 @@ static int gpio_sedi_power_management(const struct device *dev, uint32_t ctrl_co
 }
 #endif /* CONFIG_PM_DEVICE */
 
-static void gpio_sedi_callback(const uint32_t pin_mask, const uint8_t port,
-			       void *param)
-{
-	ARG_UNUSED(port);
-	struct device *dev = (struct device *)param;
-	struct gpio_sedi_runtime *runtime =
-		(struct gpio_sedi_runtime *)(dev->data);
-
-	/* call the callbacks */
-	gpio_fire_callbacks(&runtime->callbacks, dev, pin_mask);
-
-}
-
 static void gpio_sedi_write_raw(const struct device *dev, uint32_t pins, bool is_clear)
 {
 	uint8_t i;
 	const struct gpio_sedi_config *config = dev->config;
 	sedi_gpio_t gpio_dev = config->device;
 	sedi_gpio_pin_state_t val;
+	uint32_t real_pin;
 
 	if (is_clear) {
 		val = GPIO_STATE_LOW;
@@ -165,7 +156,8 @@ static void gpio_sedi_write_raw(const struct device *dev, uint32_t pins, bool is
 
 	for (i = 0; i < config->pin_nums; i++) {
 		if (pins & 0x1) {
-			sedi_gpio_write_pin(gpio_dev, i, val);
+			real_pin = config->port * PINS_PER_PORT + i;
+			sedi_gpio_write_pin(gpio_dev, real_pin, val);
 		}
 		pins >>= 1;
 		if (pins == 0) {
@@ -180,6 +172,7 @@ static int gpio_sedi_configure(const struct device *dev, gpio_pin_t pin,
 	const struct gpio_sedi_config *config = dev->config;
 	sedi_gpio_t gpio_dev = config->device;
 	sedi_gpio_pin_config_t pin_config = { 0 };
+	uint32_t real_pin = PINS_PER_PORT * config->port + pin;
 
 	/* Output GPIO cannot produce interrupt */
 	if ((flags & GPIO_INPUT) && (flags & GPIO_OUTPUT)) {
@@ -190,16 +183,16 @@ static int gpio_sedi_configure(const struct device *dev, gpio_pin_t pin,
 	/* Map direction */
 	if (flags & GPIO_OUTPUT) {
 		pin_config.direction = GPIO_DIR_MODE_OUTPUT;
-		sedi_gpio_config_pin(gpio_dev, pin, pin_config);
+		sedi_gpio_config_pin(gpio_dev, real_pin, pin_config);
 		/* Set start state */
 		if ((flags & GPIO_OUTPUT_INIT_HIGH) != 0) {
-			sedi_gpio_write_pin(gpio_dev, pin, 1);
+			sedi_gpio_write_pin(gpio_dev, real_pin, 1);
 		} else if ((flags & GPIO_OUTPUT_INIT_LOW) != 0) {
-			sedi_gpio_write_pin(gpio_dev, pin, 0);
+			sedi_gpio_write_pin(gpio_dev, real_pin, 0);
 		}
 	} else {
 		pin_config.direction = GPIO_DIR_MODE_INPUT;
-		sedi_gpio_config_pin(gpio_dev, pin, pin_config);
+		sedi_gpio_config_pin(gpio_dev, real_pin, pin_config);
 	}
 
 	return 0;
@@ -243,10 +236,12 @@ static int gpio_sedi_toggle_bits(const struct device *dev, uint32_t pins)
 	const struct gpio_sedi_config *config = dev->config;
 	sedi_gpio_t gpio_dev = config->device;
 	uint8_t i;
+	uint32_t real_pin;
 
 	for (i = 0; i < config->pin_nums; i++) {
 		if (pins & 0x1) {
-			sedi_gpio_toggle_pin(gpio_dev, i);
+			real_pin = config->port * PINS_PER_PORT + i;
+			sedi_gpio_toggle_pin(gpio_dev, real_pin);
 		}
 		pins >>= 1;
 		if (pins == 0) {
@@ -264,6 +259,7 @@ static int gpio_sedi_interrupt_configure(const struct device *dev,
 	const struct gpio_sedi_config *config = dev->config;
 	sedi_gpio_t gpio_dev = config->device;
 	sedi_gpio_pin_config_t pin_config = { 0 };
+	uint32_t real_pin = PINS_PER_PORT * config->port + pin;
 
 	/* Only input needs interrupt enabled */
 	pin_config.direction = GPIO_DIR_MODE_INPUT;
@@ -288,7 +284,7 @@ static int gpio_sedi_interrupt_configure(const struct device *dev,
 		}
 	}
 	/* Configure interrupt mode */
-	sedi_gpio_config_pin(gpio_dev, pin, pin_config);
+	sedi_gpio_config_pin(gpio_dev, real_pin, pin_config);
 
 	return 0;
 }
@@ -310,7 +306,7 @@ static uint32_t gpio_sedi_get_pending(const struct device *dev)
 	const struct gpio_sedi_config *config = dev->config;
 	sedi_gpio_t gpio_dev = config->device;
 
-	return sedi_gpio_get_gisr(gpio_dev, 0);
+	return sedi_gpio_get_gisr(gpio_dev, config->port);
 }
 
 static const struct gpio_driver_api gpio_sedi_driver_api = {
@@ -328,6 +324,7 @@ static const struct gpio_driver_api gpio_sedi_driver_api = {
 static const struct gpio_sedi_config gpio0_config = {
 	.common = { 0xFFFFFFFF },
 	.device = SEDI_GPIO_0,
+	.port = GPIO_PORT_0,
 	.pin_nums = 30,
 };
 
@@ -342,6 +339,7 @@ DEVICE_DEFINE(gpio_0, DT_PROP(DT_NODELABEL(gpio0), label), &gpio_sedi_init,
 static const struct gpio_sedi_config gpio1_config = {
 	.common = { 0xFFFFFFFF },
 	.device = SEDI_GPIO_1,
+	.port = GPIO_PORT_0,
 	.pin_nums = 30,
 };
 
@@ -354,13 +352,48 @@ DEVICE_DEFINE(gpio_1, DT_PROP(DT_NODELABEL(gpio1), label), &gpio_sedi_init,
 	      POST_KERNEL, CONFIG_KERNEL_INIT_PRIORITY_DEFAULT,
 	      &gpio_sedi_driver_api);
 
+/* Device specific for WOL use case */
+static const struct gpio_sedi_config gpio_wol_config = {
+	.common = { 0x000000FF },
+	.device = SEDI_GPIO_0,
+	.port = GPIO_PORT_1,
+	.pin_nums = 8,
+};
+
+static struct gpio_sedi_runtime gpio_wol_runtime;
+DEVICE_DEFINE(gpio_wol, "GPIO_WOL", &gpio_sedi_init,
+	      gpio_sedi_power_management, &gpio_wol_runtime, &gpio_wol_config,
+	      POST_KERNEL, CONFIG_KERNEL_INIT_PRIORITY_DEFAULT,
+	      &gpio_sedi_driver_api);
+
+static void gpio_sedi_callback(const uint32_t pin_mask, const uint8_t port,
+			       void *param)
+{
+	ARG_UNUSED(port);
+	struct device *dev = (struct device *)param;
+	struct gpio_sedi_runtime *runtime =
+		(struct gpio_sedi_runtime *)(dev->data);
+
+	if (port == 1) {
+		runtime = &gpio_wol_runtime;
+	}
+
+	/* call the callbacks */
+	gpio_fire_callbacks(&runtime->callbacks, dev, pin_mask);
+
+}
+
 static int gpio_sedi_init(const struct device *dev)
 {
-	int ret;
+	int ret = 0;
 	const struct gpio_sedi_config *config = dev->config;
 	sedi_gpio_t gpio_dev = config->device;
 
 	/* Call sedi gpio init */
+	if (config->port == 1) {
+		return 0;
+	}
+
 	ret = sedi_gpio_init(gpio_dev, gpio_sedi_callback, (void *)dev);
 
 	if (ret != 0) {
@@ -369,16 +402,16 @@ static int gpio_sedi_init(const struct device *dev)
 	sedi_gpio_set_power(gpio_dev, SEDI_POWER_FULL);
 	switch (gpio_dev) {
 	case SEDI_GPIO_0:
-		IRQ_CONNECT(DT_INST_IRQN(0),
-			    DT_INST_IRQ(0, priority),
+		IRQ_CONNECT(DT_IRQN(DT_NODELABEL(gpio0)),
+			    DT_IRQ(DT_NODELABEL(gpio0), priority),
 			    sedi_gpio_0_isr, NULL, 0);
-		irq_enable(DT_INST_IRQN(0));
+		irq_enable(DT_IRQN(DT_NODELABEL(gpio0)));
 		break;
 	case SEDI_GPIO_1:
-		IRQ_CONNECT(DT_INST_IRQN(1),
-			    DT_INST_IRQ(1, priority),
+		IRQ_CONNECT(DT_IRQN(DT_NODELABEL(gpio1)),
+			    DT_IRQ(DT_NODELABEL(gpio1), priority),
 			    sedi_gpio_1_isr, NULL, 0);
-		irq_enable(DT_INST_IRQN(1));
+		irq_enable(DT_IRQN(DT_NODELABEL(gpio1)));
 		break;
 	default:
 		return -EIO;
