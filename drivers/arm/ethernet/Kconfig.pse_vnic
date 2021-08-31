@@ -1,0 +1,47 @@
+# Kconfig - PSE VNIC driver configuration options
+
+#
+# Copyright (c) 2021 Intel Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+config ETH_PSE_VNIC
+	bool "PSE VNIC driver"
+	depends on SEDI
+	help
+	  Enable virtual NIC for PSE.
+
+
+if ETH_PSE_VNIC
+config ETH_PSE_VNIC_MAC0
+	hex "MAC Address Byte 0"
+	default 0
+	range 0 0xff
+
+config ETH_PSE_VNIC_MAC1
+	hex "MAC Address Byte 1"
+	default 0
+	range 0 0xff
+
+config ETH_PSE_VNIC_MAC2
+	hex "MAC Address Byte 2"
+	default 0
+	range 0 0xff
+
+config ETH_PSE_VNIC_MAC3
+	hex "MAC Address Byte 3"
+	default 0
+	range 0 0xff
+
+config ETH_PSE_VNIC_MAC4
+	hex "MAC Address Byte 4"
+	default 0
+	range 0 0xff
+
+config ETH_PSE_VNIC_MAC5
+	hex "MAC Address Byte 5"
+	default 0
+	range 0 0xff
+
+endif

@@ -16,3 +16,5 @@ if(CONFIG_ETH_DWC_EQOS_NETWORK_PROXY)
 	zephyr_include_directories(${ZEPHYR_BASE}/subsys/net/ip/)
 	zephyr_sources(eth_dwc_eqos_v5_netprox.c)
 endif()
+
+zephyr_sources_ifdef(CONFIG_ETH_PSE_VNIC eth_pse_vnic.c)
