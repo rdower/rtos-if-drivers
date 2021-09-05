@@ -167,7 +167,6 @@ static int can_sedi_set_timing(const struct device *dev,
 			       const struct can_timing *timing_data)
 {
 	struct  can_bittiming_t arbit_timing = { 0 };
-	struct  can_fast_bittiming_t data_timing = { 0 };
 	struct can_sedi_data_t *data = dev->data;
 	int ret = 0;
 
@@ -183,6 +182,8 @@ static int can_sedi_set_timing(const struct device *dev,
 	}
 
 #ifdef CONFIG_CAN_FD_MODE
+	struct  can_fast_bittiming_t data_timing = { 0 };
+
 	if (timing_data) {
 		data_timing.fast_sjw = timing_data->sjw - 1;
 		data_timing.fast_phase_seg1 = timing_data->phase_seg1 +
@@ -954,7 +955,9 @@ void can_sedi_register_state_change_isr(const struct device *dev,
 int can_sedi_ioctl(const struct device *dev, uint32_t can_cmd, void *data)
 {
 	int ret = 0;
+#if defined(CONFIG_CAN_FD_MODE)
 	uint32_t fd_val;
+#endif
 	struct can_sedi_data_t *can_dev = DEV_DATA(dev);
 	struct can_parity_err_t *err = NULL;
 
