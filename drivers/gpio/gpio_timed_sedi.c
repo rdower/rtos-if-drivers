@@ -153,6 +153,8 @@ static int tgpio_device_ctrl(const struct device *port, uint32_t ctrl_command,
 		case PM_DEVICE_STATE_FORCE_SUSPEND:
 			tgpio_force_suspend_device(port);
 			break;
+		default:
+			ret = -ENOTSUP;
 		}
 	} else if (ctrl_command == PM_DEVICE_STATE_GET) {
 		*state = tgpio_get_power_state(port);
