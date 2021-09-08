@@ -575,7 +575,7 @@ static int dwc_busy_wait(uint32_t base_addr, uint32_t reg_addr,
 	 */
 	while (!!(eth_read(base_addr, reg_addr) & reg_bit) ^ bit_set_wait) {
 		if (retries-- == 0) {
-			LOG_ERR("%s busy wait timeout", s);
+			LOG_ERR("%s busy wait timeout", log_strdup(s));
 			return -ETIMEDOUT;
 		}
 
