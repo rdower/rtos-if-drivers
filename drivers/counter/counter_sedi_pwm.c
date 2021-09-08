@@ -9,6 +9,7 @@
 #include <init.h>
 #include <drivers/counter.h>
 #include "driver/sedi_driver_pwm.h"
+#include "driver/sedi_driver_pm.h"
 
 #define DT_DRV_COMPAT intel_pse_pwm
 
@@ -32,7 +33,7 @@
 	};							       \
 /* Internal block device*/					       \
 	DEVICE_DEFINE(counter_block_##n, "counter_block_##n",	       \
-		      &counter_block_init, &device_pm_control_nop,     \
+		      counter_block_init, NULL,			       \
 		      &block_rt[DT_INST_PROP(n, peripheral_id)],       \
 		      &config_info_##n, POST_KERNEL,		       \
 		      CONFIG_KERNEL_INIT_PRIORITY_DEVICE, NULL);
@@ -57,7 +58,7 @@
 		.instance = (num % SEDI_PWM_ID_NUM),	   \
 	};						   \
 	DEVICE_DEFINE(counter_##num, "COUNTER_" # num,	   \
-		      counter_init, device_pm_control_nop, \
+		      counter_init, NULL,		   \
 		      &block_rt[num / SEDI_PWM_ID_NUM],	   \
 		      &counter_cfg_##num,		   \
 		      POST_KERNEL, prio, &counter_pwm_sedi_api)
