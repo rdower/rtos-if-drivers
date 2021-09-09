@@ -4,9 +4,7 @@
 menuconfig CAN_SEDI
 	depends on SEDI
 	bool "PSE CAN Driver"
-	select CAN_HAS_CANFD
 	select CAN_IOCTL
-	select CAN_FD_MODE
 	select CAN_INSTANCE
 	help
 	  This option enables the PSE CAN driver.
