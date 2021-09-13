@@ -2,3 +2,4 @@
 # SPDX-License-Identifier: Apache-2.0
 
 zephyr_sources_ifdef(CONFIG_CAN_SEDI can_sedi.c)
+zephyr_sources_ifdef(CONFIG_CAN_INTEL can_intel.c)

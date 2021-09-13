@@ -12,3 +12,4 @@ config CAN_INSTANCE
 	Enable support for can instance when multiple instances present
 
 rsource "Kconfig.sedi"
+rsource "Kconfig.can_intel"

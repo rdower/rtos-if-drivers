@@ -18,6 +18,7 @@ if (CONFIG_HAS_INTEL)
   zephyr_library_sources_ifdef(CONFIG_INTEL_TGPIO    ${SRC_DIR}/tgpio/intel_tgpio.c)
   zephyr_library_sources_ifdef(CONFIG_INTEL_PWM    ${SRC_DIR}/pwm/intel_pwm.c)
   zephyr_library_sources_ifdef(CONFIG_INTEL_EMMC    ${SRC_DIR}/emmc/emmc_5p1.c)
+  zephyr_library_sources_ifdef(CONFIG_INTEL_CAN    ${SRC_DIR}/can/intel_can.c)
 endif()
 
 if (CONFIG_HAS_SEDI)

@@ -25,6 +25,9 @@ config INTEL_PWM
 config INTEL_EMMC
 	bool "Enable eMMC driver"
 
+config INTEL_CAN
+	bool "Enable CAN driver"
+
 endmenu
 
 config HAS_SEDI
