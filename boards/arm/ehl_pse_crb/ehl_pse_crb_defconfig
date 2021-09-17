@@ -69,3 +69,11 @@ CONFIG_USER_APP_FRAMEWORK=n
 CONFIG_NUM_USER_APP_AND_SERVICE=4
 CONFIG_MAIN_STACK_SIZE=2048
 CONFIG_IDLE_STACK_SIZE=2048
+
+# SHELL priority must be lower than (NUM_PREEMPT_PRIORITIES - 1).
+# By default SHELL's priority is assigned the lowest. Now here we are
+# increasing the priority so that shell doesn't get blocked by other/default 
+# apps.
+CONFIG_NUM_PREEMPT_PRIORITIES=32
+CONFIG_SHELL_THREAD_PRIORITY_OVERRIDE=y
+CONFIG_SHELL_THREAD_PRIORITY=29
