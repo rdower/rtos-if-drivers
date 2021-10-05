@@ -77,6 +77,54 @@ config ETH_DWC_EQOS_PTP_DEBUG
 	default n
 
 choice
+	prompt "PTP Init Time"
+	default ETH_DWC_EQOS_PTP_INIT_SEC
+	depends on PTP_CLOCK && NET_PKT_TIMESTAMP
+
+config ETH_DWC_EQOS_PTP_INIT_SEC
+	bool "Init the PTP Time with Seconds"
+	help
+	  To initialize the PTP time with value in Seconds.
+
+config ETH_DWC_EQOS_PTP_INIT_EPOCH
+	bool "Init the PTP Time with Epoch Date"
+	help
+	  To initialize the PTP time with value in Epoch date.
+
+endchoice
+
+config ETH_DWC_EQOS_PTP_SEC_INIT_VAL
+	int "PTP Init Seconds"
+	default 0
+	depends on PTP_CLOCK && NET_PKT_TIMESTAMP && ETH_DWC_EQOS_PTP_INIT_SEC
+	help
+	  The value in Seconds for PTP time init.
+
+config ETH_DWC_EQOS_PTP_EPOCH_YEAR_INIT_VAL
+	int "PTP Init Epoch Year"
+	default 1970
+	range 1970 2100
+	depends on PTP_CLOCK && NET_PKT_TIMESTAMP && ETH_DWC_EQOS_PTP_INIT_EPOCH
+	help
+	  The Epoch year value for PTP time init.
+
+config ETH_DWC_EQOS_PTP_EPOCH_MONTH_INIT_VAL
+	int "PTP Init Epoch Month"
+	default 1
+	range 1 12
+	depends on PTP_CLOCK && NET_PKT_TIMESTAMP && ETH_DWC_EQOS_PTP_INIT_EPOCH
+	help
+	  The Epoch month value for PTP time init.
+
+config ETH_DWC_EQOS_PTP_EPOCH_DAY_INIT_VAL
+	int "PTP Init Epoch Day"
+	default 1
+	range 1 31
+	depends on PTP_CLOCK && NET_PKT_TIMESTAMP && ETH_DWC_EQOS_PTP_INIT_EPOCH
+	help
+	  The Epoch day value for PTP time init.
+
+choice
 	prompt "Operation Mode"
 	default ETH_DWC_EQOS_IRQ_MODE
 

@@ -3746,10 +3746,68 @@ static int eth_mac_config_addend(struct eth_runtime *context, uint32_t addend)
 	return 0;
 }
 
+#define EPOCH_YEAR		1970
+#define SECSPERDAY		86400
+#define DAYSPERYEAR		365
+#define DAYSPERLEAPYEAR		366
+
+static int isleapyear(int year)
+{
+	if (year % 4 == 0) {
+		/* Every 400 years is leap year however every 100 years is not
+		 * a leap year.
+		 */
+		if (year % 400 == 0) {
+			return 1;
+		} else if (year % 100 != 0) {
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+static uint32_t date2sec(int base, int year, int month, int day)
+{
+	char month2days[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+	uint32_t retval = 0;
+	int temp;
+
+	/* convert years to days */
+	for (temp = base; temp < year; temp++) {
+		if (isleapyear(temp)) {
+			retval += DAYSPERLEAPYEAR;
+		} else {
+			retval += DAYSPERYEAR;
+		}
+	}
+	/* convert the total year in days to seconds */
+	retval *= SECSPERDAY;
+
+	/* update the Feb table to align leap year */
+	month2days[1] += isleapyear(year);
+
+	/* convert month to seconds */
+	for (temp = 0; temp < month - 1; temp++) {
+		retval += month2days[temp] * SECSPERDAY;
+	}
+
+	/* ensure the input day is within the limit */
+	if (day > month2days[month - 1]) {
+		day = month2days[month - 1];
+	}
+
+	/* convert day to seconds */
+	retval += (day - 1) * SECSPERDAY;
+
+	return retval;
+}
+
 static int eth_mac_sys_time_init(const struct device *port)
 {
 	struct eth_runtime *context = port->data;
 	uint32_t base_addr = context->base_addr;
+	uint32_t init_sec = 0;
 	uint32_t reg_val;
 	uint32_t sec_inc;
 	uint64_t temp = 0;
@@ -3789,7 +3847,15 @@ static int eth_mac_sys_time_init(const struct device *port)
 
 	retval = eth_mac_config_addend(context, context->default_addend);
 
-	retval |= eth_mac_set_time(context, 0, 0);
+#if defined(CONFIG_ETH_DWC_EQOS_PTP_INIT_SEC)
+	init_sec = CONFIG_ETH_DWC_EQOS_PTP_SEC_INIT_VAL;
+#elif defined(CONFIG_ETH_DWC_EQOS_PTP_INIT_EPOCH)
+	init_sec = date2sec(EPOCH_YEAR,
+			    CONFIG_ETH_DWC_EQOS_PTP_EPOCH_YEAR_INIT_VAL,
+			    CONFIG_ETH_DWC_EQOS_PTP_EPOCH_MONTH_INIT_VAL,
+			    CONFIG_ETH_DWC_EQOS_PTP_EPOCH_DAY_INIT_VAL);
+#endif
+	retval |= eth_mac_set_time(context, init_sec, 0);
 
 	return retval;
 }
