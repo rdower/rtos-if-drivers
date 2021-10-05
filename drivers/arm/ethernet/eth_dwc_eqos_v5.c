@@ -6111,7 +6111,7 @@ static int eth_0_setup(const struct device *dev)
 #endif /* CONFIG_ETH_DWC_EQOS_0_PCI */
 
 ETH_NET_DEVICE_INIT(eth_dwc_eqos_0, CONFIG_ETH_DWC_EQOS_0_NAME, eth_0_setup,
-		    device_pm_control_nop, &eth_0_runtime, &eth_config_0,
+		    NULL, &eth_0_runtime, &eth_config_0,
 		    CONFIG_ETH_INIT_PRIORITY, &api_funcs, ETH_DWC_EQOS_MTU);
 #endif  /* CONFIG_ETH_DWC_EQOS_0 */
 
@@ -6745,7 +6745,7 @@ static int eth_1_setup(const struct device *dev)
 #endif /* CONFIG_ETH_DWC_EQOS_1_PCI */
 
 ETH_NET_DEVICE_INIT(eth_dwc_eqos_1, CONFIG_ETH_DWC_EQOS_1_NAME, eth_1_setup,
-		    device_pm_control_nop, &eth_1_runtime, &eth_config_1,
+		    NULL, &eth_1_runtime, &eth_config_1,
 		    CONFIG_ETH_INIT_PRIORITY, &api_funcs, ETH_DWC_EQOS_MTU);
 #endif  /* CONFIG_ETH_DWC_EQOS_1 */
 
