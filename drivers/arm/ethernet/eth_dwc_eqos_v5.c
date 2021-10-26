@@ -3136,11 +3136,8 @@ static void eth_tx_clean(struct eth_runtime *context, int queue, int desc_num)
 
 #ifndef CONFIG_ETH_DWC_EQOS_NETWORK_PROXY
 		if (pkt) {
+			/* Freeing the L2 header fragment and the packet */
 			net_pkt_frag_unref(frag);
-			for (frag = pkt->frags; frag; frag = frag->frags) {
-				net_pkt_frag_unref(frag);
-			}
-
 			net_pkt_unref(pkt);
 		}
 #endif /* CONFIG_ETH_DWC_EQOS_NETWORK_PROXY */
@@ -3675,11 +3672,14 @@ static int eth_tx(const struct device *port, struct net_pkt *pkt)
 #endif
 
 	for (frag = pkt->frags; frag; frag = frag->frags) {
+		if (frag == pkt->frags) {
+			/* Let's prevent L2 freeing the header fragment */
+			net_pkt_frag_ref(frag);
+		}
+
 		eth_tx_data(context, q, frag->data, frag->len, total_len,
 			    frag == pkt->frags ? 1 : 0,
 			    !frag->frags ? pkt : NULL, txtime);
-		/* Hold the packet's fragment buffer until TX completed */
-		net_pkt_frag_ref(frag);
 	}
 
 	return 0;
