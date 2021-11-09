@@ -255,7 +255,7 @@
 		interrupts = <0 1>;
 		label = "IPC_HOST";
 		interrupt-parent = <&nvic>;
-		timeout-ms = <1000>;
+		timeout-ms = <5000>;
 		status = "okay";
 	};
 	ipccsme: ipc@40410000 {
