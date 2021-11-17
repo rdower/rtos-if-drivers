@@ -48,7 +48,7 @@ static void uart_sedi_cb(const struct device *port);
 		IRQ_CONNECT(DT_IRQ(DT_NODELABEL(uart##n), irq),		       \
 			    DT_IRQ(DT_NODELABEL(			       \
 					   uart##n), priority), uart_sedi_isr, \
-			    DEVICE_GET(uart_##n), 0);			       \
+			    DEVICE_DT_GET(DT_NODELABEL(uart##n)), 0);	       \
 		irq_enable(DT_IRQ(DT_NODELABEL(uart##n), irq));		       \
 	}
 #else /*CONFIG_UART_INTERRUPT_DRIVEN */
@@ -82,9 +82,9 @@ static void uart_sedi_cb(const struct device *port);
 	};								    \
 									    \
 	static struct uart_sedi_drv_data drv_data_##n;			    \
-	DEVICE_DEFINE(uart_##n, DT_LABEL(DT_NODELABEL(uart##n)),	    \
-		      &uart_sedi_init,					    \
-		      &uart_sedi_device_ctrl,				    \
+	DEVICE_DT_DEFINE(DT_NODELABEL(uart##n),	    \
+		      uart_sedi_init,					    \
+		      uart_sedi_device_action_cb,			    \
 		      &drv_data_##n, &config_info_##n,			    \
 		      PRE_KERNEL_1,					    \
 		      CONFIG_KERNEL_INIT_PRIORITY_DEVICE, &api);	    \
@@ -223,20 +223,6 @@ static void uart_busy_clear(const struct device *dev)
 }
 
 #ifdef CONFIG_PM_DEVICE
-static void uart_sedi_set_power_state(const struct device *dev,
-				      enum pm_device_state power_state)
-{
-	struct uart_sedi_drv_data *context = dev->data;
-
-	context->device_power_state = power_state;
-}
-
-static uint32_t uart_sedi_get_power_state(const struct device *dev)
-{
-	struct uart_sedi_drv_data *context = dev->data;
-
-	return context->device_power_state;
-}
 
 static int uart_suspend_device(const struct device *dev)
 {
@@ -252,7 +238,6 @@ static int uart_suspend_device(const struct device *dev)
 		return -EIO;
 	}
 
-	uart_sedi_set_power_state(dev, PM_DEVICE_STATE_SUSPEND);
 
 	return 0;
 }
@@ -267,7 +252,6 @@ static int uart_resume_device_from_suspend(const struct device *dev)
 		return -EIO;
 	}
 
-	uart_sedi_set_power_state(dev, PM_DEVICE_STATE_ACTIVE);
 
 	return 0;
 }
@@ -287,7 +271,6 @@ static int uart_set_device_low_power(const struct device *dev)
 		return -EIO;
 	}
 
-	uart_sedi_set_power_state(dev, PM_DEVICE_STATE_LOW_POWER);
 	return 0;
 }
 
@@ -300,35 +283,29 @@ static int uart_set_device_force_suspend(const struct device *dev)
 	if (ret != SEDI_DRIVER_OK) {
 		return -EIO;
 	}
-	uart_sedi_set_power_state(dev, PM_DEVICE_STATE_FORCE_SUSPEND);
 	return 0;
 }
 
-static int(uart_sedi_device_ctrl) (const struct device *dev,
-				   uint32_t ctrl_command,
-				   enum pm_device_state *state) {
+static int uart_sedi_device_action_cb(const struct device *dev,
+				   enum pm_device_action action)
+{
 	int ret = 0;
 
-	if (ctrl_command == PM_DEVICE_STATE_SET) {
-
-		switch (*state) {
-		case PM_DEVICE_STATE_SUSPEND:
-			ret = uart_suspend_device(dev);
-			break;
-		case PM_DEVICE_STATE_ACTIVE:
-			ret = uart_resume_device_from_suspend(dev);
-			break;
-		case PM_DEVICE_STATE_LOW_POWER:
-			ret = uart_set_device_low_power(dev);
-			break;
-		case PM_DEVICE_STATE_FORCE_SUSPEND:
-			ret = uart_set_device_force_suspend(dev);
-			break;
-		default:
-			ret = -ENOTSUP;
-		}
-	} else if (ctrl_command == PM_DEVICE_STATE_GET) {
-		*(state) = uart_sedi_get_power_state(dev);
+	switch (action) {
+	case PM_DEVICE_ACTION_SUSPEND:
+		ret = uart_suspend_device(dev);
+		break;
+	case PM_DEVICE_ACTION_LOW_POWER:
+		ret = uart_set_device_low_power(dev);
+		break;
+	case PM_DEVICE_ACTION_RESUME:
+		ret = uart_resume_device_from_suspend(dev);
+		break;
+	case PM_DEVICE_ACTION_FORCE_SUSPEND:
+		ret = uart_set_device_force_suspend(dev);
+		break;
+	default:
+		ret = -ENOTSUP;
 	}
 
 	return ret;

@@ -407,19 +407,9 @@ ack_end:
 }
 
 #if defined(CONFIG_PM_DEVICE)
-static int ipc_power_ctrl(const struct device *dev, uint32_t ctrl_command,
-			  enum pm_device_state *state)
+static int ipc_power_action_cb(const struct device *dev, enum pm_device_action action)
 {
-	int ret = 0;
-	struct ipc_sedi_context *data = dev->data;
-
-	if (ctrl_command == PM_DEVICE_STATE_SET) {
-		data->power_status = *state;
-	} else if (ctrl_command == PM_DEVICE_STATE_GET) {
-		*state = data->power_status;
-	}
-
-	return ret;
+	return 0;
 
 }
 #endif
@@ -441,7 +431,7 @@ static struct ipc_sedi_config_t ipc_config_host = {
 	.default_timeout = DT_PROP(DT_NODELABEL(ipchost), timeout_ms)
 };
 DEVICE_DEFINE(ipc_host, DT_LABEL(DT_NODELABEL(ipchost)), &ipc_init,
-	      ipc_power_ctrl,
+	      ipc_power_action_cb,
 	      &ipc_data_host, &ipc_config_host,
 	      PRE_KERNEL_1, CONFIG_KERNEL_INIT_PRIORITY_DEVICE,
 	      &ipc_api);
@@ -456,7 +446,7 @@ static struct ipc_sedi_config_t ipc_config_csme = {
 	.default_timeout = DT_PROP(DT_NODELABEL(ipccsme), timeout_ms)
 };
 DEVICE_DEFINE(ipc_csme, DT_LABEL(DT_NODELABEL(ipccsme)), &ipc_init,
-	      ipc_power_ctrl,
+	      ipc_power_action_cb,
 	      &ipc_data_csme, &ipc_config_csme,
 	      PRE_KERNEL_1, CONFIG_KERNEL_INIT_PRIORITY_DEVICE,
 	      &ipc_api);
@@ -471,7 +461,7 @@ static struct ipc_sedi_config_t ipc_config_pmc = {
 	.default_timeout = DT_PROP(DT_NODELABEL(ipcpmc), timeout_ms)
 };
 DEVICE_DEFINE(ipc_pmc, DT_LABEL(DT_NODELABEL(ipcpmc)), &ipc_init,
-	      ipc_power_ctrl,
+	      ipc_power_action_cb,
 	      &ipc_data_pmc, &ipc_config_pmc,
 	      PRE_KERNEL_1, CONFIG_KERNEL_INIT_PRIORITY_DEVICE,
 	      &ipc_api);

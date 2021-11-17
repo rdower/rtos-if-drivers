@@ -20,11 +20,6 @@ extern void sedi_sb_isr(sedi_sideband_t sideband_device);
 
 #ifdef CONFIG_PM_DEVICE
 
-static uint32_t sideband_sedi_get_power_state(const struct device *dev)
-{
-	return PM_DEVICE_STATE_OFF;
-}
-
 static uint32_t sideband_resume_device_from_suspend(const struct device *dev)
 {
 	uint32_t status;
@@ -37,32 +32,27 @@ static uint32_t sideband_resume_device_from_suspend(const struct device *dev)
 	return 0;
 }
 
-static int sideband_sedi_device_ctrl(const struct device *dev, uint32_t ctrl_command,
-				     enum pm_device_state *context)
+static int sideband_sedi_device_action_cb(const struct device *dev, enum pm_device_action action)
 {
 	int ret = 0;
 
-	if (ctrl_command == PM_DEVICE_STATE_SET) {
-		switch (*context) {
-		case PM_DEVICE_STATE_SUSPEND:
-			/* Nothing to do */
-			break;
-		case PM_DEVICE_STATE_ACTIVE:
-			ret = sideband_resume_device_from_suspend(dev);
-			break;
-		case PM_DEVICE_STATE_LOW_POWER:
-			/* Always-on module, nothing to do */
-			break;
-		case PM_DEVICE_STATE_FORCE_SUSPEND:
-			/* Nothing to do */
-			break;
-		default:
-			break;
-		}
-	} else if (ctrl_command == PM_DEVICE_STATE_GET) {
-		*context = sideband_sedi_get_power_state(dev);
-	}
+	switch (action) {
+	case PM_DEVICE_ACTION_SUSPEND:
+		/* Nothing to do */
+		break;
+	case PM_DEVICE_ACTION_RESUME:
+		ret = sideband_resume_device_from_suspend(dev);
+		break;
+	case PM_DEVICE_ACTION_LOW_POWER:
+		/* Always-on module, nothing to do */
+		break;
 
+	case PM_DEVICE_ACTION_FORCE_SUSPEND:
+		/* Nothing to do */
+		break;
+	default:
+		return -ENOTSUP;
+	}
 	return ret;
 }
 
@@ -232,5 +222,5 @@ static int sideband_sedi_init(const struct device *dev)
 }
 
 DEVICE_DEFINE(sideband, "SIDEBAND", &sideband_sedi_init,
-	      sideband_sedi_device_ctrl, &sideband_data, NULL, POST_KERNEL,
+	      sideband_sedi_device_action_cb, &sideband_data, NULL, POST_KERNEL,
 	      CONFIG_KERNEL_INIT_PRIORITY_DEVICE, &sedi_sideband_driver_api);

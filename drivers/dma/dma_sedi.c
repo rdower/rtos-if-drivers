@@ -763,8 +763,7 @@ static bool is_dma_busy(sedi_dma_t dev)
 	return false;
 }
 
-static int dma_change_device_power(const struct device *dev,
-				   enum pm_device_state power_state)
+static int dma_change_device_power(const struct device *dev, enum pm_device_action action)
 {
 	struct dma_sedi_driver_data *const data = DEV_DATA(dev);
 	const struct dma_sedi_config_info *const info = DEV_CFG(dev);
@@ -773,25 +772,26 @@ static int dma_change_device_power(const struct device *dev,
 
 	sedi_power_state_t state;
 
-	switch (power_state) {
-	case PM_DEVICE_STATE_ACTIVE:
+	switch (action) {
+	case PM_DEVICE_ACTION_RESUME:
 		state = SEDI_POWER_FULL;
 		break;
-	case PM_DEVICE_STATE_SUSPEND:
+	case PM_DEVICE_ACTION_SUSPEND:
 		if (is_dma_busy(dma_dev)) {
 			return -EBUSY;
 		}
 		state = SEDI_POWER_SUSPEND;
 		break;
-	case PM_DEVICE_STATE_LOW_POWER:
+	case PM_DEVICE_ACTION_FORCE_SUSPEND:
+		state = SEDI_POWER_FORCE_SUSPEND;
+		break;
+	case PM_DEVICE_ACTION_LOW_POWER:
 		if (is_dma_busy(dma_dev)) {
 			return 0;
 		}
 		state = SEDI_POWER_LOW;
 		break;
-	case PM_DEVICE_STATE_FORCE_SUSPEND:
-		state = SEDI_POWER_FORCE_SUSPEND;
-		break;
+
 	default:
 		return -ENOTSUP;
 	}
@@ -803,21 +803,15 @@ static int dma_change_device_power(const struct device *dev,
 		}
 	}
 
-	data->power_status = power_state;
+	data->power_status = action;
 	return 0;
 }
 
-static int dma_sedi_device_ctrl(const struct device *dev, uint32_t ctrl_command,
-				enum pm_device_state *state)
+static int dma_sedi_device_action_cb(const struct device *dev, enum pm_device_action action)
 {
 	int ret = 0;
-	struct dma_sedi_driver_data *const data = DEV_DATA(dev);
 
-	if (ctrl_command == PM_DEVICE_STATE_SET) {
-		ret = dma_change_device_power(dev, *state);
-	} else if (ctrl_command == PM_DEVICE_STATE_GET) {
-		*state = data->power_status;
-	}
+	ret = dma_change_device_power(dev, action);
 
 	return ret;
 }
@@ -830,7 +824,7 @@ static int dma_sedi_device_ctrl(const struct device *dev, uint32_t ctrl_command,
 		.instance = DT_INST_PROP(n, peripheral_id),		 \
 	};								\
 	DEVICE_DEFINE(dma_sedi_##n, DT_LABEL(DT_DRV_INST(n)), &dma_sedi_init,\
-			dma_sedi_device_ctrl,				\
+			dma_sedi_device_action_cb,				\
 			&dma_sedi_dev_data_##n, &dma_sedi_config_data_##n,	\
 			PRE_KERNEL_2, CONFIG_KERNEL_INIT_PRIORITY_DEVICE,\
 			(void *)&dma_funcs);

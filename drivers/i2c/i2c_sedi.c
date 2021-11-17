@@ -261,20 +261,6 @@ extern void dw_i2c_isr(IN sedi_i2c_t i2c_device);
 
 #ifdef CONFIG_PM_DEVICE
 
-static void i2c_sedi_set_power_state(const struct device *dev, uint32_t power_state)
-{
-	struct i2c_context *context = dev->data;
-
-	context->device_power_state = power_state;
-}
-
-static uint32_t i2c_sedi_get_power_state(const struct device *dev)
-{
-	struct i2c_context *context = dev->data;
-
-	return context->device_power_state;
-}
-
 static int i2c_suspend_device(const struct device *dev)
 {
 	struct i2c_context *context = dev->data;
@@ -289,7 +275,6 @@ static int i2c_suspend_device(const struct device *dev)
 		return -EIO;
 	}
 
-	i2c_sedi_set_power_state(dev, PM_DEVICE_STATE_SUSPEND);
 
 	return 0;
 }
@@ -304,7 +289,6 @@ static int i2c_resume_device_from_suspend(const struct device *dev)
 		return -EIO;
 	}
 
-	i2c_sedi_set_power_state(dev, PM_DEVICE_STATE_ACTIVE);
 	pm_device_busy_clear(dev);
 
 	return 0;
@@ -325,7 +309,6 @@ static int i2c_set_device_low_power(const struct device *dev)
 		return -EIO;
 	}
 
-	i2c_sedi_set_power_state(dev, PM_DEVICE_STATE_LOW_POWER);
 	return 0;
 }
 
@@ -339,37 +322,31 @@ static int i2c_set_device_force_suspend(const struct device *dev)
 	if (ret != SEDI_DRIVER_OK) {
 		return -EIO;
 	}
-	i2c_sedi_set_power_state(dev, PM_DEVICE_STATE_SUSPEND);
 	return 0;
 }
 
-static int i2c_sedi_device_ctrl(const struct device *dev, uint32_t ctrl_command,
-				enum pm_device_state *state)
+static int i2c_sedi_device_ctrl(const struct device *dev, enum pm_device_action action)
 {
 	int ret = 0;
 
-	if (ctrl_command == PM_DEVICE_STATE_SET) {
 
-		switch (*state) {
-		case PM_DEVICE_STATE_SUSPEND:
+		switch (action) {
+		case PM_DEVICE_ACTION_SUSPEND:
 			ret = i2c_suspend_device(dev);
 			break;
-		case PM_DEVICE_STATE_ACTIVE:
+		case PM_DEVICE_ACTION_RESUME:
 			ret = i2c_resume_device_from_suspend(dev);
 			break;
-		case PM_DEVICE_STATE_LOW_POWER:
-			ret = i2c_set_device_low_power(dev);
-			break;
-		case PM_DEVICE_STATE_FORCE_SUSPEND:
+		case PM_DEVICE_ACTION_FORCE_SUSPEND:
 			ret = i2c_set_device_force_suspend(dev);
 			break;
+		case PM_DEVICE_ACTION_LOW_POWER:
+			ret = i2c_set_device_low_power(dev);
+			break;
+
 		default:
 			ret = -ENOTSUP;
 		}
-	} else if (ctrl_command == PM_DEVICE_STATE_GET) {
-		*state = i2c_sedi_get_power_state(dev);
-	}
-
 	return ret;
 }
 

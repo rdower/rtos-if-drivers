@@ -139,20 +139,6 @@ static int pwm_init(const struct device *dev)
 }
 
 #ifdef CONFIG_PM_DEVICE
-static void pwm_set_power_state(const struct device *dev, enum pm_device_state power_state)
-{
-	struct pwm_runtime *context = dev->data;
-
-	context->device_power_state = power_state;
-}
-
-static uint32_t pwm_get_power_state(const struct device *dev)
-{
-	struct pwm_runtime *context = dev->data;
-
-	return context->device_power_state;
-}
-
 static int pwm_suspend_device(const struct device *dev)
 {
 	uint32_t status = SEDI_DRIVER_OK;
@@ -166,21 +152,6 @@ static int pwm_suspend_device(const struct device *dev)
 	if (status != SEDI_DRIVER_OK) {
 		return -EIO;
 	}
-	pwm_set_power_state(dev, PM_DEVICE_STATE_SUSPEND);
-
-	return 0;
-}
-
-static int pwm_resume_device_from_suspend(const struct device *dev)
-{
-	uint32_t status= SEDI_DRIVER_OK;
-	uint32_t instance = (uint32_t)(dev->config);
-
-	status = sedi_pwm_set_power(instance, SEDI_POWER_FULL);
-	if (status != SEDI_DRIVER_OK) {
-		return -EIO;
-	}
-	pwm_set_power_state(dev, PM_DEVICE_STATE_ACTIVE);
 
 	return 0;
 }
@@ -198,11 +169,21 @@ static int pwm_set_device_low_power(const struct device *dev)
 	if (status != SEDI_DRIVER_OK) {
 		return -EIO;
 	}
+	return 0;
+}
+static int pwm_resume_device_from_suspend(const struct device *dev)
+{
+	uint32_t status= SEDI_DRIVER_OK;
+	uint32_t instance = (uint32_t)(dev->config);
 
-	pwm_set_power_state(dev, PM_DEVICE_STATE_LOW_POWER);
+	status = sedi_pwm_set_power(instance, SEDI_POWER_FULL);
+	if (status != SEDI_DRIVER_OK) {
+		return -EIO;
+	}
 
 	return 0;
 }
+
 
 static int pwm_force_suspend_device(const struct device *dev)
 {
@@ -210,37 +191,33 @@ static int pwm_force_suspend_device(const struct device *dev)
 	uint32_t instance = (uint32_t)(dev->config);
 
 	status = sedi_pwm_set_power(instance, SEDI_POWER_FORCE_SUSPEND);
-	pwm_set_power_state(dev, PM_DEVICE_STATE_FORCE_SUSPEND);
 
 	return 0;
 }
 
-static int pwm_device_ctrl(const struct device *dev, uint32_t ctrl_command,
-			   enum pm_device_state *state)
+static int pwm_device_action_cb(const struct device *dev, enum pm_device_action action)
 {
 	int ret = 0;
 
-	if (ctrl_command == PM_DEVICE_STATE_SET) {
-		switch (*state) {
-		case PM_DEVICE_STATE_SUSPEND:
-			ret = pwm_suspend_device(dev);
-			break;
-		case PM_DEVICE_STATE_ACTIVE:
-			ret = pwm_resume_device_from_suspend(dev);
-			break;
-		case PM_DEVICE_STATE_LOW_POWER:
+	switch (action) {
+	case PM_DEVICE_ACTION_SUSPEND:
+		ret = pwm_suspend_device(dev);
+		break;
+	case PM_DEVICE_ACTION_RESUME:
+		ret = pwm_resume_device_from_suspend(dev);
+		break;
+	case PM_DEVICE_ACTION_LOW_POWER:
 			ret = pwm_set_device_low_power(dev);
 			break;
-		case PM_DEVICE_STATE_FORCE_SUSPEND:
-			pwm_force_suspend_device(dev);
-			break;
-		default:
-			ret = ENOTSUP;
 
-		}
-	} else if (ctrl_command == PM_DEVICE_STATE_GET) {
-		*state = pwm_get_power_state(dev);
+	case PM_DEVICE_ACTION_FORCE_SUSPEND:
+		pwm_force_suspend_device(dev);
+		break;
+	default:
+		ret = ENOTSUP;
+
 	}
+
 
 	return ret;
 }
@@ -249,7 +226,7 @@ static int pwm_device_ctrl(const struct device *dev, uint32_t ctrl_command,
 #define PWM_SEDI_DEVICE_INIT(n)						   \
 	static struct pwm_runtime pwm_runtime_##n;			   \
 	DEVICE_DEFINE(pwm_##n, DT_INST_LABEL(n),			   \
-		      &pwm_init, pwm_device_ctrl, &pwm_runtime_##n,	   \
+		      &pwm_init, pwm_device_action_cb, &pwm_runtime_##n,	   \
 		      (void *)DT_INST_PROP(n, peripheral_id), POST_KERNEL, \
 		      CONFIG_KERNEL_INIT_PRIORITY_DEFAULT, &api_funcs);
 
