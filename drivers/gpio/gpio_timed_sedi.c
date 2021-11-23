@@ -59,21 +59,6 @@ void callback(const void *data, uint32_t status)
 }
 
 #ifdef CONFIG_PM_DEVICE
-static void tgpio_set_power_state(const struct device *port,
-				  uint32_t power_state)
-{
-	struct tgpio_runtime *context = port->data;
-
-	context->device_power_state = power_state;
-}
-
-static uint32_t tgpio_get_power_state(const struct device *port)
-{
-	struct tgpio_runtime *context = port->data;
-
-	return context->device_power_state;
-}
-
 static int tgpio_suspend_device(const struct device *port)
 {
 	uint32_t status;
@@ -87,7 +72,6 @@ static int tgpio_suspend_device(const struct device *port)
 	if (status != SEDI_DRIVER_OK) {
 		return -EIO;
 	}
-	tgpio_set_power_state(port, PM_DEVICE_STATE_SUSPEND);
 
 	return 0;
 }
@@ -101,7 +85,6 @@ static int tgpio_resume_device_from_suspend(const struct device *port)
 	if (status != SEDI_DRIVER_OK) {
 		return -EIO;
 	}
-	tgpio_set_power_state(port, PM_DEVICE_STATE_ACTIVE);
 
 	return 0;
 }
@@ -119,7 +102,6 @@ static int tgpio_set_device_low_power(const struct device *port)
 	if (status != SEDI_DRIVER_OK) {
 		return -EIO;
 	}
-	tgpio_set_power_state(port, PM_DEVICE_STATE_LOW_POWER);
 
 	return 0;
 }
@@ -129,35 +111,30 @@ static int tgpio_force_suspend_device(const struct device *port)
 	sedi_tgpio_t instance = TGPIO_GET_INSTANCE(port);
 
 	sedi_tgpio_set_power(instance, SEDI_POWER_FORCE_SUSPEND);
-	tgpio_set_power_state(port, PM_DEVICE_STATE_FORCE_SUSPEND);
 
 	return 0;
 }
 
-static int tgpio_device_ctrl(const struct device *port, uint32_t ctrl_command,
-			     enum pm_device_state *state)
+static int tgpio_device_action_cb(const struct device *port,
+				  enum pm_device_action action)
 {
 	int ret = 0;
 
-	if (ctrl_command == PM_DEVICE_STATE_SET) {
-		switch (*state) {
-		case PM_DEVICE_STATE_SUSPEND:
-			ret = tgpio_suspend_device(port);
-			break;
-		case PM_DEVICE_STATE_ACTIVE:
-			ret = tgpio_resume_device_from_suspend(port);
-			break;
-		case PM_DEVICE_STATE_LOW_POWER:
-			ret = tgpio_set_device_low_power(port);
-			break;
-		case PM_DEVICE_STATE_FORCE_SUSPEND:
-			tgpio_force_suspend_device(port);
-			break;
-		default:
-			ret = -ENOTSUP;
-		}
-	} else if (ctrl_command == PM_DEVICE_STATE_GET) {
-		*state = tgpio_get_power_state(port);
+	switch (action) {
+	case PM_DEVICE_ACTION_SUSPEND:
+		ret = tgpio_suspend_device(port);
+		break;
+	case PM_DEVICE_ACTION_LOW_POWER:
+		ret = tgpio_set_device_low_power(port);
+		break;
+	case PM_DEVICE_ACTION_RESUME:
+		ret = tgpio_resume_device_from_suspend(port);
+		break;
+	case PM_DEVICE_ACTION_FORCE_SUSPEND:
+		tgpio_force_suspend_device(port);
+		break;
+	default:
+		ret = -ENOTSUP;
 	}
 
 	return ret;
@@ -442,9 +419,7 @@ static int tgpio_init(const struct device *port)
 	}
 
 	rt->irq_config_func(port);
-#ifdef CONFIG_PM_DEVICE
-	tgpio_set_power_state(port, PM_DEVICE_STATE_ACTIVE);
-#endif
+
 	return status;
 }
 
@@ -465,7 +440,7 @@ static int tgpio_init(const struct device *port)
 		.instance = DT_INST_PROP(n, peripheral_id),		\
 	};								\
 	DEVICE_DEFINE(tgpio_##n, DT_INST_LABEL(n), &tgpio_init,		\
-		      tgpio_device_ctrl, &tgpio_##n##_runtime,		\
+		      tgpio_device_action_cb, &tgpio_##n##_runtime,	\
 		      &tgpio_##n##_cfg,					\
 		      POST_KERNEL, CONFIG_KERNEL_INIT_PRIORITY_DEFAULT,	\
 		      &api_funcs);
