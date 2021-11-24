@@ -80,21 +80,6 @@ struct qep_sedi_drv_data {
 
 #ifdef CONFIG_PM_DEVICE
 
-static void qep_sedi_set_power_state(const struct device *dev,
-				     uint32_t power_state)
-{
-	struct qep_sedi_drv_data *context = dev->data;
-
-	context->device_power_state = power_state;
-}
-
-static uint32_t qep_sedi_get_power_state(const struct device *dev)
-{
-	struct qep_sedi_drv_data *context = dev->data;
-
-	return context->device_power_state;
-}
-
 static int qep_suspend_device(const struct device *dev)
 {
 	const struct qep_sedi_config_info *config = dev->config;
@@ -108,7 +93,6 @@ static int qep_suspend_device(const struct device *dev)
 	if (ret != SEDI_DRIVER_OK) {
 		return -EIO;
 	}
-	qep_sedi_set_power_state(dev, PM_DEVICE_STATE_SUSPEND);
 
 	return ret;
 }
@@ -122,9 +106,8 @@ static int qep_resume_device_from_suspend(const struct device *dev)
 	if (ret != SEDI_DRIVER_OK) {
 		return -EIO;
 	}
-	qep_sedi_set_power_state(dev, PM_DEVICE_STATE_ACTIVE);
-	pm_device_busy_clear(dev);
 
+	pm_device_busy_clear(dev);
 	return ret;
 }
 
@@ -141,7 +124,7 @@ static int qep_set_device_low_power(const struct device *dev)
 	if (ret != SEDI_DRIVER_OK) {
 		return -EIO;
 	}
-	qep_sedi_set_power_state(dev, PM_DEVICE_STATE_LOW_POWER);
+
 	return ret;
 }
 
@@ -154,34 +137,29 @@ static int qep_set_device_force_suspend(const struct device *dev)
 	if (ret != SEDI_DRIVER_OK) {
 		return -EIO;
 	}
-	qep_sedi_set_power_state(dev, PM_DEVICE_STATE_FORCE_SUSPEND);
 	return ret;
 }
 
-static int qep_sedi_device_ctrl(const struct device *dev, uint32_t ctrl_command,
-				enum pm_device_state *state)
+static int qep_sedi_device_ctrl(const struct device *dev,
+				enum pm_device_action action)
 {
 	int ret = 0;
 
-	if (ctrl_command == PM_DEVICE_STATE_SET) {
-		switch (*(state)) {
-		case PM_DEVICE_STATE_SUSPEND:
-			ret = qep_suspend_device(dev);
-			break;
-		case PM_DEVICE_STATE_ACTIVE:
-			ret = qep_resume_device_from_suspend(dev);
-			break;
-		case PM_DEVICE_STATE_LOW_POWER:
-			ret = qep_set_device_low_power(dev);
-			break;
-		case PM_DEVICE_STATE_FORCE_SUSPEND:
-			ret = qep_set_device_force_suspend(dev);
-			break;
-		default:
-			ret = -ENOTSUP;
-		}
-	} else if (ctrl_command == PM_DEVICE_STATE_GET) {
-		*(state) = qep_sedi_get_power_state(dev);
+	switch (action) {
+	case PM_DEVICE_ACTION_SUSPEND:
+		ret = qep_suspend_device(dev);
+		break;
+	case PM_DEVICE_ACTION_RESUME:
+		ret = qep_resume_device_from_suspend(dev);
+		break;
+	case PM_DEVICE_ACTION_LOW_POWER:
+		ret = qep_set_device_low_power(dev);
+		break;
+	case PM_DEVICE_ACTION_FORCE_SUSPEND:
+		ret = qep_set_device_force_suspend(dev);
+		break;
+	default:
+		ret = -ENOTSUP;
 	}
 
 	return ret;
