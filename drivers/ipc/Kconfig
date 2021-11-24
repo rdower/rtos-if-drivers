@@ -21,4 +21,5 @@ module-str = ipc
 source "subsys/logging/Kconfig.template.log_config"
 
 rsource "Kconfig.sedi"
+rsource "Kconfig.ipc_intel"
 endif # IPC

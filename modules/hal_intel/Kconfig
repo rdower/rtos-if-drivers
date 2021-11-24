@@ -28,6 +28,9 @@ config INTEL_EMMC
 config INTEL_CAN
 	bool "Enable CAN driver"
 
+config INTEL_IPC
+	bool "Enable IPC driver"
+
 endmenu
 
 config HAS_SEDI
