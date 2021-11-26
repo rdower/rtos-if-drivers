@@ -329,24 +329,23 @@ static int i2c_sedi_device_ctrl(const struct device *dev, enum pm_device_action 
 {
 	int ret = 0;
 
+	switch (action) {
+	case PM_DEVICE_ACTION_SUSPEND:
+		ret = i2c_suspend_device(dev);
+		break;
+	case PM_DEVICE_ACTION_RESUME:
+		ret = i2c_resume_device_from_suspend(dev);
+		break;
+	case PM_DEVICE_ACTION_FORCE_SUSPEND:
+		ret = i2c_set_device_force_suspend(dev);
+		break;
+	case PM_DEVICE_ACTION_LOW_POWER:
+		ret = i2c_set_device_low_power(dev);
+		break;
 
-		switch (action) {
-		case PM_DEVICE_ACTION_SUSPEND:
-			ret = i2c_suspend_device(dev);
-			break;
-		case PM_DEVICE_ACTION_RESUME:
-			ret = i2c_resume_device_from_suspend(dev);
-			break;
-		case PM_DEVICE_ACTION_FORCE_SUSPEND:
-			ret = i2c_set_device_force_suspend(dev);
-			break;
-		case PM_DEVICE_ACTION_LOW_POWER:
-			ret = i2c_set_device_low_power(dev);
-			break;
-
-		default:
-			ret = -ENOTSUP;
-		}
+	default:
+		ret = -ENOTSUP;
+	}
 	return ret;
 }
 

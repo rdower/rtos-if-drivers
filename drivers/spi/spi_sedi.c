@@ -445,22 +445,22 @@ static int spi_sedi_device_action_cb(const struct device *dev,
 {
 	int ret = 0;
 
-		switch (action) {
-		case PM_DEVICE_ACTION_SUSPEND:
-			ret = spi_suspend_device(dev);
-			break;
-		case PM_DEVICE_ACTION_RESUME:
-			ret = spi_resume_device_from_suspend(dev);
-			break;
-		case PM_DEVICE_ACTION_LOW_POWER:
-			ret = spi_set_device_low_power(dev);
-			break;
-		case PM_DEVICE_ACTION_FORCE_SUSPEND:
-			ret = spi_set_device_force_suspend(dev);
-			break;
-		default:
-			ret = -ENOTSUP;
-		}
+	switch (action) {
+	case PM_DEVICE_ACTION_SUSPEND:
+		ret = spi_suspend_device(dev);
+		break;
+	case PM_DEVICE_ACTION_RESUME:
+		ret = spi_resume_device_from_suspend(dev);
+		break;
+	case PM_DEVICE_ACTION_LOW_POWER:
+		ret = spi_set_device_low_power(dev);
+		break;
+	case PM_DEVICE_ACTION_FORCE_SUSPEND:
+		ret = spi_set_device_force_suspend(dev);
+		break;
+	default:
+		ret = -ENOTSUP;
+	}
 
 	return ret;
 }

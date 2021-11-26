@@ -97,23 +97,23 @@ static int gpio_sedi_power_management(const struct device *dev, enum pm_device_a
 {
 	int ret = 0;
 
-		switch (action) {
-		case PM_DEVICE_ACTION_SUSPEND:
-			ret = gpio_suspend_device(dev);
-			break;
-		case PM_DEVICE_ACTION_RESUME:
-			ret = gpio_resume_device_from_suspend(dev);
-			break;
-		case PM_DEVICE_ACTION_FORCE_SUSPEND:
-			gpio_force_suspend_device(dev);
-			break;
-		case PM_DEVICE_ACTION_LOW_POWER:
-			ret = gpio_set_device_low_power(dev);
-			break;
+	switch (action) {
+	case PM_DEVICE_ACTION_SUSPEND:
+		ret = gpio_suspend_device(dev);
+		break;
+	case PM_DEVICE_ACTION_RESUME:
+		ret = gpio_resume_device_from_suspend(dev);
+		break;
+	case PM_DEVICE_ACTION_FORCE_SUSPEND:
+		gpio_force_suspend_device(dev);
+		break;
+	case PM_DEVICE_ACTION_LOW_POWER:
+		ret = gpio_set_device_low_power(dev);
+		break;
 
-		default:
-			ret = -ENOTSUP;
-		}
+	default:
+		ret = -ENOTSUP;
+	}
 
 	return ret;
 }
