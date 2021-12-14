@@ -82,6 +82,9 @@ static int can_sedi_set_timing(const struct device *dev,
 			       const struct can_timing *timing,
 			       const struct can_timing *timing_data);
 static int can_sedi_get_core_clock(const struct device *dev, uint32_t *rate);
+static int can_sedi_set_bitrate(const struct device *dev,
+				uint32_t bitrate,
+				uint32_t bitrate_data);
 
 static const struct can_driver_api can_sedi_api_funcs = {
 	.set_mode = can_sedi_set_mode,
@@ -95,6 +98,7 @@ static const struct can_driver_api can_sedi_api_funcs = {
 	#ifdef CONFIG_CAN_IOCTL
 	.ioctl = can_sedi_ioctl,
 	#endif
+	.set_bitrate = can_sedi_set_bitrate,
 	.get_state = can_sedi_get_state,
 	.register_state_change_isr = can_sedi_register_state_change_isr,
 	.get_core_clock = can_sedi_get_core_clock,
@@ -116,6 +120,38 @@ static const struct can_driver_api can_sedi_api_funcs = {
 #endif
 
 };
+
+static int can_sedi_set_bitrate(const struct device *dev,
+				uint32_t bitrate,
+				uint32_t bitrate_data)
+{
+	struct can_timing timing;
+
+#ifdef CONFIG_CAN_FD_MODE
+	struct can_timing timing_data;
+#endif
+	int ret;
+
+	ret = can_calc_timing(dev, &timing, bitrate, 875);
+	if (ret < 0) {
+		return -EINVAL;
+	}
+
+	timing.sjw = CAN_SJW_NO_CHANGE;
+
+#ifdef CONFIG_CAN_FD_MODE
+	ret = can_calc_timing_data(dev, &timing_data, bitrate_data, 875);
+	if (ret < 0) {
+		return -EINVAL;
+	}
+
+	timing_data.sjw = CAN_SJW_NO_CHANGE;
+
+	return can_set_timing(dev, &timing, &timing_data);
+#else
+	return can_set_timing(dev, &timing, NULL);
+#endif  /* CONFIG_CAN_FD_MODE */
+}
 
 static int can_sedi_set_mode(const struct device *dev, enum can_mode mode)
 {
