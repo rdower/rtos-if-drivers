@@ -234,7 +234,10 @@ static int transceive(const struct device *dev, const struct spi_config *config,
 	ret = spi_context_wait_for_completion(&spi->ctx);
 out:
 	spi_context_release(&spi->ctx, ret);
-	pm_device_busy_clear(dev);
+
+	if ((!asynchronous) || (ret != 0)) {
+		pm_device_busy_clear(dev);
+	}
 
 	return ret;
 }
@@ -294,6 +297,11 @@ void spi_sedi_callback(uint32_t event, void *param)
 	    (event == SEDI_SPI_EVENT_DATA_LOST)) {
 		spi_context_cs_control(&spi->ctx, false);
 		spi_context_complete(&spi->ctx, error);
+#ifdef CONFIG_SPI_ASYNC
+		if (ctx->asynchronous) {
+			pm_device_busy_clear(dev);
+		}
+#endif
 	} else if (event == SEDI_SPI_EVENT_TX_FINISHED) {
 		spi_context_update_tx(ctx, 1, ctx->tx_len);
 		if (ctx->tx_len != 0) {
