@@ -385,6 +385,121 @@ struct mdns_answer_info {
 	uint32_t ttl;				/* Time to live in second */
 };
 
+/* Struct mdns_resp_rr_info is used to record the information needed to
+ * retrieve RR information structure which requires response from mDNS database.
+ *
+ *  a) rr_type: the type of mDNS query (refer to enum mdns_rr_type).
+ *
+ *  b) rr_entry_index: the index of RR information structure entries.
+ *     Based on the mDNS query type (rr_type), mDNS classifier will identify
+ *     which index of RR information structure (from mDNS query) requires mDNS
+ *     response. It will store the index of that RR information structure in
+ *     'rr_entry_index'.
+ *
+ *  c) ptr_t: the type of PTR query (only applicable for PTR RR).
+ *     For mDNS PTR query, different query types (refer to enum mdns_ptr_type)
+ *     have different RR names. Therefore, 'ptr_t' is used to record which RR
+ *     name is required.
+ */
+struct mdns_resp_rr_info {
+	uint16_t rr_type;
+	uint16_t rr_entry_index;
+	uint16_t ptr_t;
+};
+
+/* Struct mdns_resp_construct_info is used to record the information needed to
+ * construct mDNS response message at frame responder.
+ *
+ *  a) hdr: offset of mDNS header in the response frame.
+ *
+ *  b) tld: offset of top level domain of 1st Answer RR relative to 'hdr'.
+ *          Note: TLD is always '.local'.
+ *
+ *  c) sld: offset of second level domain of 1st Answer RR relative to 'hdr'.
+ *          Note: SLD is usually '._tcp' for printing services.
+ *
+ *  d) ancount: total number of RRs in Answer Section.
+ *
+ *  e) mdns_pos: Position of mDNS response message (used to keep tracking the
+ *               current position of response packet).
+ *
+ *  f) pkt_len: Total length of mDNS response message (including L2 - L4).
+ *
+ *  g) is_ipv6: 1: IPv6 mDNS query & 0: Ipv4 mDNS query.
+ */
+struct mdns_resp_construct_info {
+	uint16_t hdr;
+	uint16_t tld;
+	uint16_t sld;
+	uint16_t ancount;
+	uint8_t *mdns_pos;
+	int pkt_len;
+	bool is_ipv6;
+};
+
+/* mDNS Response Message information
+ *
+ * Special Note:
+ * Struct mdns_resp_info is used to record the information needed to
+ * construct mDNS response message at frame responder.
+ *
+ *  a) rr: info needed to retrieve RR information structure from database.
+ *
+ *  b) construct: information needed to construct mDNS response message.
+ *
+ *  c) need_ans: the total number of mDNS queries that require answer.
+ *
+ *     NETPROX_MDNS_QUERY_TO_BE_HANDLE_MAX is the maximum number of mDNS queries
+ *     which the Network Proxy classifier can handle.
+ *     NETPROX_MDNS_QUERY_TO_BE_HANDLE_MAX is defined as 10 because currently we
+ *     only support three types of mDNS query (PTR, SRV, and TXT) on three types
+ *     of printing sevices, i.e., UNIX Printer, Internet Printer (IPP), and
+ *     Secure Internet Printer (IPPS).
+ */
+#define NETPROX_MDNS_QUERY_TO_BE_HANDLE_MAX                    10
+
+struct mdns_resp_info {
+	struct mdns_resp_rr_info rr[NETPROX_MDNS_QUERY_TO_BE_HANDLE_MAX];
+	struct mdns_resp_construct_info construct;
+	uint16_t need_ans;
+};
+
+
+/* Struct mdns_truncated_info is used to record the query information of mDNS
+ * query message with truncated bit set.
+ *
+ *  a) rr: info needed to retrieve RR information structure from database.
+ *
+ *  b) need_ans: the total number of mDNS queries that require answer.
+ *
+ *  c) rcv_time: kernel uptime in ms when receiving the mDNS query message.
+ *
+ *  d) ipv4_saddr: IPv4 source address of the received mDNS query message.
+ *
+ *  e) ipv6_saddr: IPv6 source address of the received mDNS query message.
+ *
+ * Special Note:
+ * NETPROX_MDNS_QUERY_WAIT_TIME_MAX is the maximum waiting time for subsequent
+ * known-answer messages after receiving a mDNS query message with truncated bit
+ * set. According to RFC 6762, responder shall wait a random amount of time in
+ * the range 400-500 ms. For ease handling, NETPROX_MDNS_QUERY_WAIT_TIME_MAX is
+ * defined as 450 ms.
+ *
+ * Due to buffer limitation, only one set of mdns_truncated_info will be stored
+ * in mDNS database. Whenever Network Proxy Agent received a new truncated mDNS
+ * query message with valid query, it will clear the old mdns_truncated_info and
+ * will not generate any response to that old mDNS truncated query message.
+ */
+#define NETPROX_MDNS_QUERY_WAIT_TIME_MAX                    450
+
+struct mdns_truncated_info {
+	struct mdns_resp_rr_info rr[NETPROX_MDNS_QUERY_TO_BE_HANDLE_MAX];
+	uint16_t need_ans;
+	int64_t rcv_time;
+	struct in_addr ipv4_saddr;
+	struct in6_addr ipv6_saddr;
+};
+
 /* Structure for mDNS Database
  *
  * Please make sure the value of NETPROX_MDNS_MAX_RR_SZ is always set to
@@ -416,6 +531,7 @@ struct mdns_answer_info {
  *  /        uint8_t mdns_rr                        /
  *  |                                               |
  *  +-----------------------------------------------+
+ *
  */
 #define NETPROX_MDNS_MAX_RR_SZ			4092
 
@@ -423,6 +539,7 @@ struct mdns_answer_info {
 struct mdns_db {
 	uint8_t data[NETPROX_MDNS_MAX_RR_SZ];
 	unsigned int sz;
+	struct mdns_truncated_info truncated_info;
 };
 
 /* Type of mDNS RR */
@@ -605,85 +722,6 @@ struct mdns_aaaa_info {
 struct mdns_a_info {
 	uint16_t metadata;		/* Pos of metadata */
 	uint16_t rdata;			/* Pos of rdata (IPv4 address) */
-};
-
-/* Struct mdns_resp_rr_info is used to record the information needed to
- * retrieve RR information structure which requires response from mDNS database.
- *
- *  a) rr_type: the type of mDNS query (refer to enum mdns_rr_type).
- *
- *  b) rr_entry_index: the index of RR information structure entries.
- *     Based on the mDNS query type (rr_type), mDNS classifier will identify
- *     which index of RR information structure (from mDNS query) requires mDNS
- *     response. It will store the index of that RR information structure in
- *     'rr_entry_index'.
- *
- *  c) ptr_t: the type of PTR query (only applicable for PTR RR).
- *     For mDNS PTR query, different query types (refer to enum mdns_ptr_type)
- *     have different RR names. Therefore, 'ptr_t' is used to record which RR
- *     name is required.
- */
-struct mdns_resp_rr_info {
-	uint16_t rr_type;
-	uint16_t rr_entry_index;
-	uint16_t ptr_t;
-};
-
-/* Struct mdns_resp_construct_info is used to record the information needed to
- * construct mDNS response message at frame responder.
- *
- *  a) hdr: offset of mDNS header in the response frame.
- *
- *  b) tld: offset of top level domain of 1st Answer RR relative to 'hdr'.
- *          Note: TLD is always '.local'.
- *
- *  c) sld: offset of second level domain of 1st Answer RR relative to 'hdr'.
- *          Note: SLD is usually '._tcp' for printing services.
- *
- *  d) ancount: total number of RRs in Answer Section.
- *
- *  e) mdns_pos: Position of mDNS response message (used to keep tracking the
- *               current position of response packet).
- *
- *  f) pkt_len: Total length of mDNS response message (including L2 - L4).
- *
- *  g) is_ipv6: 1: IPv6 mDNS query & 0: Ipv4 mDNS query.
- */
-struct mdns_resp_construct_info {
-	uint16_t hdr;
-	uint16_t tld;
-	uint16_t sld;
-	uint16_t ancount;
-	uint8_t *mdns_pos;
-	int pkt_len;
-	bool is_ipv6;
-};
-
-/* mDNS Response Message information
- *
- * Special Note:
- * Struct mdns_resp_info is used to record the information needed to
- * construct mDNS response message at frame responder.
- *
- *  a) rr: info needed to retrieve RR information structure from database.
- *
- *  b) construct: information needed to construct mDNS response message.
- *
- *  c) need_ans: the total number of mDNS queries that require answer.
- *
- *     NETPROX_MDNS_QUERY_TO_BE_HANDLE_MAX is the maximum number of mDNS queries
- *     which the Network Proxy classifier can handle.
- *     NETPROX_MDNS_QUERY_TO_BE_HANDLE_MAX is defined as 10 because currently we
- *     only support three types of mDNS query (PTR, SRV, and TXT) on three types
- *     of printing sevices, i.e., UNIX Printer, Internet Printer (IPP), and
- *     Secure Internet Printer (IPPS).
- */
-#define NETPROX_MDNS_QUERY_TO_BE_HANDLE_MAX                    10
-
-struct mdns_resp_info {
-	struct mdns_resp_rr_info rr[NETPROX_MDNS_QUERY_TO_BE_HANDLE_MAX];
-	struct mdns_resp_construct_info construct;
-	uint16_t need_ans;
 };
 
 /* mDNS domain name is represented as a sequence of labels. Each label is

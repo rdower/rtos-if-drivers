@@ -1731,6 +1731,108 @@ static int fc_mdns_check_query(uint8_t *mdns_hdr_start, uint8_t **mdns_pos,
 	return ret;
 }
 
+static void fc_mdns_clear_truncated_info(void)
+{
+	/* Clear buffer of truncated_info */
+	memset(&mdns_db.truncated_info, 0, sizeof(mdns_db.truncated_info));
+
+	/* Remove mDNS multi-packets from shared memory */
+	if (!np_ctx.waked_host) {
+		np_ctx.a2h_rxbuf.a2h_total_packets = 0;
+		np_ctx.a2h_rxbuf.a2h_total_size = A2H_HEADER_SIZE;
+	}
+}
+
+static void fc_mdns_set_truncated_info(struct frame_classifier *frame,
+				       struct net_eth_hdr *eth_hdr,
+				       bool is_ipv6,
+				       bool is_subsequent_known_answer,
+				       struct mdns_resp_info *resp_info)
+{
+	struct mdns_truncated_info *truncated_info = &mdns_db.truncated_info;
+	struct net_ipv4_hdr *ip4_hdr;
+	struct net_ipv6_hdr *ip6_hdr;
+
+	if (!is_subsequent_known_answer) {
+		fc_mdns_clear_truncated_info();
+
+		/* Store receive time */
+		truncated_info->rcv_time = k_uptime_get();
+
+		/* Store IP source address */
+		if (is_ipv6) {
+			ip6_hdr = (struct net_ipv6_hdr *)(eth_hdr + 1);
+			net_ipaddr_copy(&truncated_info->ipv6_saddr,
+					&ip6_hdr->src);
+		} else {
+			ip4_hdr = (struct net_ipv4_hdr *)(eth_hdr + 1);
+			net_ipaddr_copy(&truncated_info->ipv4_saddr,
+					&ip4_hdr->src);
+		}
+	}
+
+	/* Copy truncated_info from resp_info to mDNS database */
+	memcpy(&truncated_info->need_ans, &resp_info->need_ans,
+	       sizeof(truncated_info->need_ans));
+	memcpy(truncated_info->rr, resp_info->rr,
+	       sizeof(struct mdns_resp_rr_info) *
+	       NETPROX_MDNS_QUERY_TO_BE_HANDLE_MAX);
+
+	/* Store frame in shared memory so that the truncated mDNS message can
+	 * be passed to Host for futher processing under following scenarios:
+	 * (a) wake packet is received in between of mDNS multi-packets.
+	 * (b) the mDNS multi-packets itself has conflict known-answer.
+	 */
+	netprox_add_a2h_packet(frame->pkt, frame->len);
+
+	LOG_DBG("Waiting subsequent known-answer msg for truncated mDNS msg.");
+}
+
+static int fc_mdns_get_truncated_info(struct net_eth_hdr *eth_hdr, bool is_ipv6,
+				      struct mdns_resp_info *resp_info)
+{
+	struct mdns_truncated_info *truncated_info = &mdns_db.truncated_info;
+	struct net_ipv4_hdr *ip4_hdr = NULL;
+	struct net_ipv6_hdr *ip6_hdr = NULL;
+	int64_t wait_time;
+
+	/* Data stored in mdns_resp_rr_info is invalid if the time between
+	 * truncated mDNS query msg and subsequent known-answer msg is bigger
+	 * than NETPROX_MDNS_QUERY_WAIT_TIME_MAX
+	 */
+	wait_time = k_uptime_get();
+	wait_time -= truncated_info->rcv_time;
+	if (wait_time > NETPROX_MDNS_QUERY_WAIT_TIME_MAX) {
+		return -1;
+	}
+
+	/* Check IP source address */
+	if (is_ipv6) {
+		ip6_hdr = (struct net_ipv6_hdr *)(eth_hdr + 1);
+
+		if (!net_ipv6_addr_cmp(&truncated_info->ipv6_saddr,
+				       &ip6_hdr->src)) {
+			return -1;
+		}
+	} else {
+		ip4_hdr = (struct net_ipv4_hdr *)(eth_hdr + 1);
+
+		if (!net_ipv4_addr_cmp(&truncated_info->ipv4_saddr,
+				       &ip4_hdr->src)) {
+			return -1;
+		}
+	}
+
+	/* Copy truncated_info from mDNS database to resp_info */
+	memcpy(&resp_info->need_ans, &truncated_info->need_ans,
+	       sizeof(resp_info->need_ans));
+	memcpy(resp_info->rr, truncated_info->rr,
+	       sizeof(struct mdns_resp_rr_info) *
+	       NETPROX_MDNS_QUERY_TO_BE_HANDLE_MAX);
+
+	return 0;
+}
+
 /* Frame Classifier: Process mDNS message according to format shown below:
  *
  * mDNS Message Format :-
@@ -1760,6 +1862,8 @@ static void fc_process_mdns(struct frame_classifier *frame, bool is_ipv6)
 	uint8_t *mdns_hdr_start;
 	uint8_t *mdns_pos;
 	int i;
+	bool is_truncated;
+	bool is_subsequent_known_answer = 0;
 
 	/* Check mDNS message handling decision */
 	if (!(fc_rs_mdns & NP_RL_CLS_ENABLE)) {
@@ -1844,13 +1948,21 @@ static void fc_process_mdns(struct frame_classifier *frame, bool is_ipv6)
 		return;
 	}
 
-	/* Check existence of truncated mDNS message that will have additional
-	 * known-answer in following message
+	/* Check truncated bit */
+	is_truncated = !!(ntohs(mdns_hdr->flags) & NETPROX_MDNS_HDR_FLAGS_TC);
+
+	/* mDNS query msg with 0 query count means the msg is a subsequent
+	 * known-answer msg for previous truncated mDNS query msg. Therefore,
+	 * we need to check whether data stored in mdns_resp_rr_info from
+	 * previous truncated mDNS query msg is valid or not.
 	 */
-	if (ntohs(mdns_hdr->flags) & NETPROX_MDNS_HDR_FLAGS_TC) {
-		/* TODO: Add support to truncated mDNS query */
-		LOG_DBG("Ignoring mDNS msg: Truncated bit is set.");
-		return;
+	if (ntohs(mdns_hdr->qdcount) == 0) {
+		is_subsequent_known_answer = true;
+
+		if (fc_mdns_get_truncated_info(eth_hdr, is_ipv6, &resp_info)) {
+			LOG_DBG("Ignoring mDNS known-answer msg.");
+			return;
+		}
 	}
 
 	/* Get the start position of mDNS header for message uncompression */
@@ -1881,11 +1993,24 @@ static void fc_process_mdns(struct frame_classifier *frame, bool is_ipv6)
 
 	if (!resp_info.need_ans) {
 		LOG_DBG("Ignoring mDNS msg: all queries have known-answers.");
+		goto clear_truncated_data;
+	}
+
+	/* Store truncated mDNS query message */
+	if (is_truncated) {
+		fc_mdns_set_truncated_info(frame, eth_hdr, is_ipv6,
+					   is_subsequent_known_answer,
+					   &resp_info);
 		return;
 	}
 
 	/* Prepare mDNS response message */
 	fr_process_mdns(frame, resp_info);
+
+clear_truncated_data:
+	if (is_subsequent_known_answer) {
+		fc_mdns_clear_truncated_info();
+	}
 }
 
 /* Frame Classifier: Prepare IPv6 neighbor advertisement packet */
