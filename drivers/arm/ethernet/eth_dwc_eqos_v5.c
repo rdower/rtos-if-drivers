@@ -3746,6 +3746,7 @@ static int eth_mac_config_addend(struct eth_runtime *context, uint32_t addend)
 	return 0;
 }
 
+#ifdef CONFIG_ETH_DWC_EQOS_PTP_INIT_EPOCH
 #define EPOCH_YEAR		1970
 #define SECSPERDAY		86400
 #define DAYSPERYEAR		365
@@ -3802,6 +3803,7 @@ static uint32_t date2sec(int base, int year, int month, int day)
 
 	return retval;
 }
+#endif  /* CONFIG_ETH_DWC_EQOS_PTP_INIT_EPOCH */
 
 static int eth_mac_sys_time_init(const struct device *port)
 {
