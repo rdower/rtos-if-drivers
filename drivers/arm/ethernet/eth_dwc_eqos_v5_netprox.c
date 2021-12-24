@@ -1325,6 +1325,9 @@ static int fc_mdns_check_conflit(struct frame_classifier *frame,
 	}
 
 	if (dbrdlen != ans_info->rdlen) {
+		if (ans_info->type == MDNS_RR_T_PTR) {
+			return 0;
+		}
 		LOG_DBG("mDNS wake host for conflit resolution.");
 		netprox_add_a2h_pkt_wake(frame->pkt, frame->len);
 		return MDNS_KNOWN_ANS_CONFLIT_FOUND;
@@ -1332,6 +1335,9 @@ static int fc_mdns_check_conflit(struct frame_classifier *frame,
 
 	if (memcmp(&mdns_db.data[dbrdata], ans_info->rdata, ans_info->rdlen) !=
 	    0) {
+		if (ans_info->type == MDNS_RR_T_PTR) {
+			return 0;
+		}
 		LOG_DBG("mDNS wake host for conflit resolution.");
 		netprox_add_a2h_pkt_wake(frame->pkt, frame->len);
 		return MDNS_KNOWN_ANS_CONFLIT_FOUND;
@@ -1537,9 +1543,7 @@ static int fc_mdns_check_known_ans(struct frame_classifier *frame,
 						    ptr_info->rdlen[
 							    MDNS_CT_T_FULL],
 						    resp_info);
-			if (ret == MDNS_KNOWN_ANS_CONFLIT_FOUND) {
-				return ret;
-			} else if (ret == MDNS_KNOWN_ANS_DATA_MATCHED) {
+			if (ret == MDNS_KNOWN_ANS_DATA_MATCHED) {
 				return 0;
 			}
 			break;
