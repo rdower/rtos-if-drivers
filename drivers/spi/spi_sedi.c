@@ -41,6 +41,24 @@ struct spi_sedi_data {
 #endif
 };
 
+static bool spi_cs_active(struct spi_context *ctx)
+{
+	if (ctx->config->operation & SPI_CS_ACTIVE_HIGH) {
+		return true;
+	}
+
+	return false;
+}
+
+static bool spi_cs_inactive(struct spi_context *ctx)
+{
+	if (ctx->config->operation & SPI_CS_ACTIVE_HIGH) {
+		return false;
+	}
+
+	return true;
+}
+
 static int spi_sedi_configure(const struct device *dev,
 			      const struct spi_config *config)
 {
@@ -125,6 +143,7 @@ static int transceive(const struct device *dev, const struct spi_config *config,
 	}
 
 	/* If need to configure, re-configure */
+	ctx->config = config;
 	if (config != NULL) {
 		spi_sedi_configure(dev, config);
 	}
@@ -162,7 +181,7 @@ static int transceive(const struct device *dev, const struct spi_config *config,
 	}
 
 	if ((ctx->tx_len == 0) && (ctx->rx_len == 0)) {
-		spi_context_cs_control(&spi->ctx, false);
+		spi_context_cs_control(&spi->ctx, spi_cs_inactive(ctx));
 		spi_context_complete(&spi->ctx, 0);
 		return 0;
 	}
@@ -205,7 +224,7 @@ static int transceive(const struct device *dev, const struct spi_config *config,
 		transfer_bytes = ctx->tx_len;
 	}
 
-	spi_context_cs_control(&spi->ctx, true);
+	spi_context_cs_control(&spi->ctx, spi_cs_active(ctx));
 
 	pm_device_busy_set(dev);
 #if CONFIG_DMA_SEDI
@@ -295,7 +314,7 @@ void spi_sedi_callback(uint32_t event, void *param)
 
 	if ((event == SEDI_SPI_EVENT_COMPLETE) ||
 	    (event == SEDI_SPI_EVENT_DATA_LOST)) {
-		spi_context_cs_control(&spi->ctx, false);
+		spi_context_cs_control(&spi->ctx, spi_cs_inactive(ctx));
 		spi_context_complete(&spi->ctx, error);
 #ifdef CONFIG_SPI_ASYNC
 		if (ctx->asynchronous) {
