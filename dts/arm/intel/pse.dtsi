@@ -124,7 +124,7 @@
 		peripheral-id = <0>;
 		label = "QEP_0";
 		interrupt-parent = <&nvic>;
-		status = "okay";
+		status = "disabled";
 	};
 
 	qep1: qep@48602000 {
@@ -144,7 +144,7 @@
 		peripheral-id = <2>;
 		label = "QEP_2";
 		interrupt-parent = <&nvic>;
-		status = "disabled";
+		status = "okay";
 	};
 
 	qep3: qep@48606000 {
