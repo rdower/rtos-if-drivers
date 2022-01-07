@@ -393,8 +393,10 @@ static void *eth_get_tx_desc(struct eth_runtime *ctxt, int q)
 	k_sem_take(&ctxt->txq_lock[q], K_FOREVER);
 	idx = ctxt->tdesc_ring_wr_ptr[q];
 	pdesc = &ctxt->tx_desc[q][idx];
+	dcache_invalidate((uint32_t)pdesc, sizeof(*pdesc));
 #ifdef CONFIG_ETH_DWC_EQOS_TBS
 	pedesc = &ctxt->enh_tx_desc[q][idx];
+	dcache_invalidate((uint32_t)pedesc, sizeof(*pedesc));
 #endif
 	idx = (idx + 1) % CONFIG_ETH_DWC_EQOS_DMA_RING_SIZE;
 	if (idx == ctxt->tdesc_ring_rd_ptr[q]) {
