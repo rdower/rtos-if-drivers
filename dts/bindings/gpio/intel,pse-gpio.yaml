@@ -2,9 +2,14 @@ description: SEDI GPIO node
 
 include: [gpio-controller.yaml, base.yaml]
 
+compatible: "intel,pse-gpio"
 properties:
     reg:
       required: true
-
     interrupts:
       required: true
+    "#gpio-cells":
+      const: 2
+gpio-cells:
+  - pin
+  - flags

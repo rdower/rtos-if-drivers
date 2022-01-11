@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/i2c/i2c.h>
 #include <arm/armv7-m.dtsi>
 / {
 	cpus {
@@ -300,7 +302,7 @@
 	gpio0: gpio@40200000 {
 		compatible = "intel,pse-gpio";
 		gpio-controller;
-		#gpio-cells = <1>;
+		#gpio-cells = <2>;
 		reg = <0x40200000 0x2000>;
 		interrupt-parent = <&nvic>;
 		interrupts = <15 2>;
@@ -310,7 +312,7 @@
 	gpio1: gpio@40300000 {
 		compatible = "intel,pse-gpio";
 		gpio-controller;
-		#gpio-cells = <1>;
+		#gpio-cells = <2>;
 		reg = <0x40300000 0x2000>;
 		interrupt-parent = <&nvic>;
 		interrupts = <16 2>;
