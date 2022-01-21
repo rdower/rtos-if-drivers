@@ -40,7 +40,7 @@ config ICCM_MEMORY_SIZE
 config DCCM_MEMORY_BASE_ADDRESS
 	hex
 	prompt "DCCM base address"
-	default $(dt_node_reg_addr_hex,/memory@20040000)
+	default $(dt_node_reg_addr_hex,/memory@20000000)
 	range 0x20000000 0x20060000
 	help
 	  Set PSE DCCM memory base address
@@ -48,7 +48,7 @@ config DCCM_MEMORY_BASE_ADDRESS
 config DCCM_MEMORY_SIZE
 	hex
 	prompt "DCCM memory size"
-	default $(dt_node_reg_size_hex,/memory@20040000)
+	default $(dt_node_reg_size_hex,/memory@20000000)
 	range 0 0x00060000
 	help
 	  Set PSE DCCM memory size

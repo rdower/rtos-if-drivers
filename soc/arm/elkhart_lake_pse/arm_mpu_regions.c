@@ -85,7 +85,7 @@ int mpu_config_init(void)
 
 #if CONFIG_EN_L2SRAM_RELOCATION_MEM
 	uint32_t rsize =
-		(u32_t)(_l2sram_mpu_ro_region_end - __l2sram_text_start);
+		(uint32_t)(_l2sram_mpu_ro_region_end - __l2sram_text_start);
 
 	LOG_DBG("L2SRAM Relocation text_rodata section size:%x\n", rsize);
 #else

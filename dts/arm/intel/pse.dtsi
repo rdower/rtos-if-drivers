@@ -33,7 +33,7 @@
 		reg = <0 0x00040000>;
 	};
 
-	dccm: memory@20040000{
+	dccm: memory@20000000{
 		device_type = "memory";
 		compatible = "mmio-sram";
 		label = "dccm";
