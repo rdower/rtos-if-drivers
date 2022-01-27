@@ -102,6 +102,10 @@ struct phy_device {
 	int (*mdio_write)(struct phy_device *phy,
 			  union mdio_frm_flds fld_data,
 			  uint16_t data, bool c45);
+	int (*get_tx_latency)(struct phy_device *phy, int32_t link_speed,
+			      int32_t *latency);
+	int (*get_rx_latency)(struct phy_device *phy, int32_t link_speed,
+			      int32_t *latency);
 };
 
 #ifdef CONFIG_ETH_PHY_USE_C22
