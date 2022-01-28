@@ -565,6 +565,18 @@ struct eth_runtime {
 #endif
 };
 
+/* Meta IRQ thread message structure */
+struct metairq_msg {
+	/* Ethernet device structure pointer */
+	struct eth_runtime *ctxt;
+
+	/* Queue number */
+	int queue;
+
+	/* Message action */
+	enum {TX_IRQ, RX_IRQ, PHY_IRQ} action;
+};
+
 /*
  * MAC Registers
  */

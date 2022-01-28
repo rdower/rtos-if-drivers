@@ -362,6 +362,29 @@ struct eth_rxp_instruction {
 struct netprox_net np_net_ctx = { 0 };
 #endif /* CONFIG_ETH_DWC_EQOS_NETWORK_PROXY */
 
+#ifdef CONFIG_ETH_DWC_EQOS_META_IRQ
+#define METAIRQ_STACK_SIZE 2048
+
+#if defined(CONFIG_ETH_DWC_EQOS_0) && defined(CONFIG_ETH_DWC_EQOS_1)
+#define METAIRQ_MSGQ_SIZE ((CONFIG_ETH_DWC_EQOS_RX_QUEUES + \
+				CONFIG_ETH_DWC_EQOS_TX_QUEUES) * \
+				CONFIG_ETH_DWC_EQOS_DMA_RING_SIZE * 2)
+#else
+#define METAIRQ_MSGQ_SIZE ((CONFIG_ETH_DWC_EQOS_RX_QUEUES + \
+				CONFIG_ETH_DWC_EQOS_TX_QUEUES) * \
+				CONFIG_ETH_DWC_EQOS_DMA_RING_SIZE)
+#endif
+
+/* Meta IRQ message queue */
+K_MSGQ_DEFINE(metairq_msgq, sizeof(struct metairq_msg), METAIRQ_MSGQ_SIZE,
+	      sizeof(uint32_t));
+
+/* Meta IRQ thread */
+static void metairq_fn(void *p1, void *p2, void *p3);
+K_THREAD_DEFINE(metairq_thread, METAIRQ_STACK_SIZE, metairq_fn,
+		NULL, NULL, NULL, K_HIGHEST_THREAD_PRIO, 0, 0);
+#endif
+
 static inline void dcache_invalidate(uint32_t addr, uint32_t size)
 {
 	/* Align address to 32 bytes */
@@ -2551,10 +2574,8 @@ static void eth_mac_timestamp_correction(struct eth_runtime *ctxt)
 }
 #endif  /* CONFIG_NET_GPTP && CONFIG_ETH_DWC_EQOS_PTP */
 
-static void eth_phy_irq(struct k_work *item)
+static void eth_phy_work(struct eth_runtime *ctxt)
 {
-	struct eth_runtime *ctxt = CONTAINER_OF(item, struct eth_runtime,
-						phy_work);
 	struct phy_device *phy = &ctxt->phy_dev;
 	bool link;
 	int32_t speed;
@@ -2636,6 +2657,14 @@ complete:
 	np_net_ctx.np_phy_irq_in_process = false;
 #endif /* CONFIG_ETH_DWC_EQOS_NETWORK_PROXY */
 	return;
+}
+
+static void eth_phy_irq(struct k_work *item)
+{
+	struct eth_runtime *ctxt = CONTAINER_OF(item, struct eth_runtime,
+						phy_work);
+
+	eth_phy_work(ctxt);
 }
 
 static inline int eth_phy_init(const struct device *port)
@@ -2998,6 +3027,8 @@ cleanup:
 #endif /* CONFIG_ETH_DWC_EQOS_NETWORK_PROXY */
 }
 
+#if defined(CONFIG_ETH_DWC_EQOS_SYS_WORKQ) || \
+	defined(CONFIG_ETH_DWC_EQOS_RX_NAPI)
 #if (CONFIG_ETH_DWC_EQOS_RX_QUEUES == 8)
 ETH_RX_IRQ_QUEUE(7);
 #endif
@@ -3027,6 +3058,7 @@ ETH_RX_IRQ_QUEUE(1);
 #endif
 
 ETH_RX_IRQ_QUEUE(0);
+#endif
 
 static inline void eth_rx_irq(const struct device *port, int queue)
 {
@@ -3043,10 +3075,18 @@ static inline void eth_rx_irq(const struct device *port, int queue)
 #endif
 		eth_write(base_addr, DMA_INTR_STATUS_CH(queue),
 			  DMA_CH_INTR_STS_RI | DMA_CH_INTR_STS_NIS);
-		/* TODO: instead of system workqueue,
-		 * a separated workqueue needed for performance ?
-		 */
+#if defined(CONFIG_ETH_DWC_EQOS_SYS_WORKQ)
 		k_work_reschedule(&context->rx_irq_work[queue].work, K_MSEC(0));
+#elif defined(CONFIG_ETH_DWC_EQOS_META_IRQ)
+		struct metairq_msg m;
+
+		m.ctxt = context;
+		m.queue = queue;
+		m.action = RX_IRQ;
+		if (k_msgq_put(&metairq_msgq, &m, K_NO_WAIT)) {
+			LOG_WRN("MetaIRQ MSGQ full, drop RX msg submission");
+		}
+#endif
 	}
 }
 
@@ -3146,6 +3186,7 @@ static void eth_tx_clean(struct eth_runtime *context, int queue, int desc_num)
 	}
 }
 
+#ifdef CONFIG_ETH_DWC_EQOS_SYS_WORKQ
 #if (CONFIG_ETH_DWC_EQOS_TX_QUEUES == 8)
 ETH_TX_IRQ_QUEUE(7);
 #endif
@@ -3175,6 +3216,7 @@ ETH_TX_IRQ_QUEUE(1);
 #endif
 
 ETH_TX_IRQ_QUEUE(0);
+#endif
 
 static inline void eth_tx_irq(const struct device *port, int queue)
 {
@@ -3187,10 +3229,18 @@ static inline void eth_tx_irq(const struct device *port, int queue)
 	if (reg_val & DMA_CH_INTR_STS_TI) {
 		eth_write(base_addr, DMA_INTR_STATUS_CH(queue),
 			  DMA_CH_INTR_STS_TI | DMA_CH_INTR_STS_NIS);
-		/* TODO: instead of system workqueue,
-		 * a separated workqueue needed for performance ?
-		 */
+#if defined(CONFIG_ETH_DWC_EQOS_SYS_WORKQ)
 		k_work_submit(&context->tx_irq_work[queue]);
+#elif defined(CONFIG_ETH_DWC_EQOS_META_IRQ)
+		struct metairq_msg m;
+
+		m.ctxt = context;
+		m.queue = queue;
+		m.action = TX_IRQ;
+		if (k_msgq_put(&metairq_msgq, &m, K_NO_WAIT)) {
+			LOG_WRN("MetaIRQ MSGQ full, drop TX msg submission");
+		}
+#endif
 	}
 }
 
@@ -3207,7 +3257,17 @@ static void eth_dwc_eqos_isr(const struct device *port)
 #else
 	reg_val = eth_read(base_addr, MAC_INTERRUPT_STATUS);
 	if (reg_val & MAC_INTR_STS_PHYIS) {
+#if defined(CONFIG_ETH_DWC_EQOS_SYS_WORKQ)
 		k_work_submit(&context->phy_work);
+#elif defined(CONFIG_ETH_DWC_EQOS_META_IRQ)
+		struct metairq_msg m;
+
+		m.ctxt = context;
+		m.action = PHY_IRQ;
+		if (k_msgq_put(&metairq_msgq, &m, K_NO_WAIT)) {
+			LOG_WRN("MetaIRQ MSGQ full, drop PHY msg submission");
+		}
+#endif
 	}
 #endif
 
@@ -3326,6 +3386,32 @@ static void eth_phy_poll(struct k_timer *timer)
 }
 #endif /* CONFIG_ETH_PHY_POLLING_MODE */
 
+#ifdef CONFIG_ETH_DWC_EQOS_META_IRQ
+static void metairq_fn(void *p1, void *p2, void *p3)
+{
+	ARG_UNUSED(p1);
+	ARG_UNUSED(p2);
+	ARG_UNUSED(p3);
+
+	while (true) {
+		struct metairq_msg m;
+
+		k_msgq_get(&metairq_msgq, &m, K_FOREVER);
+
+		if (m.action == TX_IRQ) {
+			eth_tx_clean(m.ctxt, m.queue,
+				     eth_completed_tx_desc_num(m.ctxt,
+							       m.queue));
+		} else if (m.action == RX_IRQ) {
+			eth_rx_data(m.ctxt, m.queue,
+				    eth_completed_rx_desc_num(m.ctxt, m.queue));
+		} else if (m.action == PHY_IRQ) {
+			eth_phy_work(m.ctxt);
+		}
+	}
+}
+#endif
+
 static inline int eth_intr_enable(const struct device *port)
 {
 	struct eth_runtime *context = port->data;
@@ -3384,8 +3470,12 @@ static inline int eth_intr_enable(const struct device *port)
 
 static inline void eth_irq_work_init(const struct device *port)
 {
+#if defined(CONFIG_ETH_DWC_EQOS_SYS_WORKQ) || \
+	defined(CONFIG_ETH_DWC_EQOS_RX_NAPI)
 	struct eth_runtime *context = port->data;
+#endif
 
+#ifdef CONFIG_ETH_DWC_EQOS_SYS_WORKQ
 #if (CONFIG_ETH_DWC_EQOS_TX_QUEUES == 8)
 	INIT_ETH_TX_IRQ_WORK(7);
 #endif
@@ -3408,7 +3498,10 @@ static inline void eth_irq_work_init(const struct device *port)
 	INIT_ETH_TX_IRQ_WORK(1);
 #endif
 	INIT_ETH_TX_IRQ_WORK(0);
+#endif
 
+#if defined(CONFIG_ETH_DWC_EQOS_SYS_WORKQ) || \
+	defined(CONFIG_ETH_DWC_EQOS_RX_NAPI)
 #if (CONFIG_ETH_DWC_EQOS_RX_QUEUES == 8)
 	INIT_ETH_RX_IRQ_WORK(7);
 #endif
@@ -3431,6 +3524,7 @@ static inline void eth_irq_work_init(const struct device *port)
 	INIT_ETH_RX_IRQ_WORK(1);
 #endif
 	INIT_ETH_RX_IRQ_WORK(0);
+#endif
 }
 
 static inline int eth_mac_stop_transaction(const struct device *port)

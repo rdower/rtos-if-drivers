@@ -140,6 +140,23 @@ config ETH_DWC_EQOS_POLLING_MODE
 
 endchoice
 
+choice
+	prompt "IRQ Bottom Half Mode"
+	default ETH_DWC_EQOS_SYS_WORKQ
+	depends on ETH_DWC_EQOS_IRQ_MODE
+
+config ETH_DWC_EQOS_META_IRQ
+	bool "Meta-IRQ"
+	help
+	  Use Zephyr Meta-IRQ model for interrupt bottom half.
+
+config ETH_DWC_EQOS_SYS_WORKQ
+	bool "System Workqueue"
+	help
+	  Use Zephyr system workqueue model for interrupt bottom half.
+
+endchoice
+
 menuconfig ETH_DWC_EQOS_INTR_COALESCE
 	bool "Interrupt Coalesce"
 	depends on ETH_DWC_EQOS_IRQ_MODE
