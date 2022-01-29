@@ -671,6 +671,19 @@ static const struct dma_driver_api dma_funcs = { .config = dma_sedi_chan_config,
 						 .reload = dma_sedi_reload,
 						 .get_status = NULL };
 
+static void os_power_cb(sedi_power_state_t status, void *arg)
+{
+	const struct device *dev = (const struct device *)arg;
+	if (dev == NULL) {
+		return;
+	}
+	if (status == SEDI_POWER_FULL) {
+		pm_device_busy_set(dev);
+	} else if (status == SEDI_POWER_OFF) {
+		pm_device_busy_clear(dev);
+	}
+}
+
 static int _impl_dma_sedi_init(const struct device *dev)
 {
 	struct dma_sedi_driver_data *const data = DEV_DATA(dev);
@@ -682,6 +695,7 @@ static int _impl_dma_sedi_init(const struct device *dev)
 	for (int i = 0; i < DMA_CHANNEL_NUM; i++) {
 		k_sem_init(&data->sema[i], 1, 1);
 	}
+	sedi_dma_insert_power_callback(info->instance, os_power_cb, dev);
 	return 0;
 }
 
