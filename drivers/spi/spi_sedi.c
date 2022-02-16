@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Intel Corporation.
+ * Copyright (c) 2021 - 2022 Intel Corporation.
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -397,7 +397,7 @@ int spi_sedi_init(const struct device *dev)
 	static struct spi_sedi_config spi_##num##_config = {	       \
 		.spi_device = num, .irq_config = spi_##num##_irq_init  \
 	};							       \
-	DEVICE_DEFINE(spi_sedi_##num, "SPI_" # num, spi_sedi_init,     \
+	DEVICE_DT_DEFINE(DT_NODELABEL(spi##num), spi_sedi_init,        \
 		      spi_sedi_device_action_cb,		       \
 		      &spi_##num##_data, &spi_##num##_config,	       \
 		      POST_KERNEL, CONFIG_KERNEL_INIT_PRIORITY_DEVICE, \

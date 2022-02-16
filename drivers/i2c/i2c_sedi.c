@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Intel Corporation
+ * Copyright (c) 2021 - 2022 Intel Corporation
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -247,9 +247,8 @@ extern void dw_i2c_isr(IN sedi_i2c_t i2c_device);
 		irq_enable(DT_IRQN(DT_NODELABEL(i2c##num)));	      \
 		return 0;					      \
 	}							      \
-	DEVICE_DEFINE(						      \
-		i2c_sedi_##num,					      \
-		"I2C_" # num,					      \
+	DEVICE_DT_DEFINE(					      \
+		DT_NODELABEL(i2c##num),				      \
 		i2c_##num##_init,				      \
 		i2c_sedi_device_ctrl,				      \
 		&i2c_##num##_context,				      \
