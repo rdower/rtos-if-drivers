@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Intel Corp.
+# Copyright (c) 2021 - 2022 Intel Corp.
 # SPDX-License-Identifier: Apache-2.0
 
 add_subdirectory(${ARCH}/ethernet)
@@ -19,3 +19,4 @@ add_subdirectory(audio)
 add_subdirectory(sideband)
 add_subdirectory(counter)
 add_subdirectory(disk)
+add_subdirectory(tsync)

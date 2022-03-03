@@ -1,0 +1,19 @@
+#
+# Copyright (c) 2022 Intel Corporation.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+# Top-level configuration file for TSYNC drivers.
+
+menuconfig TSYNC
+	bool "TSYNC drivers"
+	help
+	  Include TSYNC (time-synchronization) drivers in the system configuration.
+
+if TSYNC
+module = TSYNC
+module-str = TSYNC
+source "subsys/logging/Kconfig.template.log_config"
+
+endif # TSYNC
