@@ -2730,7 +2730,14 @@ static bool eth_ptp_pkt(struct net_if *iface, struct net_pkt *pkt,
 			return false;
 		}
 
-		hdr = (struct gptp_hdr *)net_pkt_data(pkt);
+		/* Check to ensure if ethernet_remove_l2_header() flow has
+		 * already executed in order to obtain the correct header.
+		 */
+		if (pkt->frags == frag) {
+			hdr = (struct gptp_hdr *)pkt->frags->frags->data;
+		} else {
+			hdr = (struct gptp_hdr *)net_pkt_data(pkt);
+		}
 
 		/* Only submit timestamp back to tx timestamp fifo for sync &
 		 * pdelay response packets which has timestamp callback routine
