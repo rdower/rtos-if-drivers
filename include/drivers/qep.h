@@ -451,7 +451,7 @@ static inline int z_impl_qep_stop_capture(const struct device *dev)
  * This function should not be called in interrupt context.
  *
  * @param dev QEP device structure.
- * @param of type qep_event_t
+ * @param event of type qep_event_t
  *
  * @retval -EPERM if the operation is not permitted in current
  *          configuration.
@@ -481,7 +481,7 @@ static inline int z_impl_qep_enable_event(const struct device *dev,
  * This function should not be called in interrupt context.
  *
  * @param dev QEP device structure.
- * @param of type qep_event_t
+ * @param event of type qep_event_t
  *
  * @retval -EPERM if the operation is not permitted in current
  *          configuration.
