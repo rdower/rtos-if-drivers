@@ -6899,11 +6899,11 @@ static int dwc_eqos_ptp_clock_adjust(const struct device *dev, int increment)
 	    (increment >= (int)NSEC_PER_SEC)) {
 		ret = -EINVAL;
 	} else {
-		sec = increment / NSEC_PER_SEC;
-		nsec = increment % NSEC_PER_SEC;
+		sec = increment / (int)NSEC_PER_SEC;
+		nsec = increment % (int)NSEC_PER_SEC;
 
 		if (neg_adj) {
-			nsec = NSEC_PER_SEC - nsec;
+			nsec = NSEC_PER_SEC + nsec;
 			nsec |= MAC_SYS_TIME_NANOSEC_UPD_ADDSUB;
 		}
 
