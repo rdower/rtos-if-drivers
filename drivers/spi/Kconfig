@@ -6,5 +6,4 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-rsource "Kconfig.spi_intel"
 rsource "Kconfig.sedi"

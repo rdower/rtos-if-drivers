@@ -21,5 +21,4 @@ rsource "audio/Kconfig"
 rsource "sideband/Kconfig"
 rsource "counter/Kconfig"
 rsource "tsync/Kconfig"
-rsource "disk/Kconfig"
 endmenu

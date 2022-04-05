@@ -4,6 +4,6 @@
 menu "Intel Internal"
 
 rsource "drivers/Kconfig"
-rsource "services/Kconfig"
+
 rsource "subsys/Kconfig"
 endmenu

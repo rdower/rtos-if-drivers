@@ -18,6 +18,4 @@ config UART_9_BIT
 	help
 	  This option enables support for 9-bit operation in UART
 
-rsource "Kconfig.uart_intel"
-
 rsource "Kconfig.sedi"
