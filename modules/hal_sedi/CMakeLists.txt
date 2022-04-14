@@ -25,7 +25,7 @@ endif()
 
 if (CONFIG_HAS_SEDI)
   set(SEDI_DIR ${ZEPHYR_CURRENT_MODULE_DIR}/)
-  set(sedi_lib_src_dir ${ZEPHYR_CURRENT_MODULE_DIR}/soc/arm/elkhart_lake_pse/sedi)
+  set(sedi_lib_src_dir ${ZEPHYR_CURRENT_MODULE_DIR})
   zephyr_include_directories(${sedi_lib_src_dir}/include)
   zephyr_include_directories(${sedi_lib_src_dir}/include/driver)
   zephyr_include_directories(${sedi_lib_src_dir}/soc/ehl_pse/include)
