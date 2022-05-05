@@ -19,7 +19,7 @@ list(APPEND MODULE_EXT_ROOT ${APPLICATION_PROJECT_DIR})
 # the most common <board>.overlay file convention in the root directory
 # of the application.
 set(INTEL_OVERLAY ${APPLICATION_PROJECT_DIR}/overlay/${BOARD}.overlay)
-set(BOARD_OVERLAY ${APPLICATION_SOURCE_DIR}/${BOARD}.overlay)
+set(BOARD_OVERLAY ${APPLICATION_SOURCE_DIR}/boards/${BOARD}.overlay)
 
 if(EXISTS ${INTEL_OVERLAY})
   if (EXISTS ${BOARD_OVERLAY})
