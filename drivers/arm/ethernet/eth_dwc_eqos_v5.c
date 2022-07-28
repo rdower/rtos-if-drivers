@@ -3691,17 +3691,17 @@ static void eth_tx_data(struct eth_runtime *context, int queue, uint8_t *data,
 
 	dcache_clean((uint32_t)data, len);
 
-	if (pkt) {
-		eth_write(base_addr, DMA_TXDESC_TAIL_PTR_CH(queue),
-			  POINTER_TO_UINT(TX_DESC_TAIL_PTR(context, queue)));
-	}
-
 	/* Store the net_pkt for eth_tx_clean() to retrieve */
 	context->tdesc_pkt[queue][idx] = pkt;
 	/* ethernet_send() will remove 1st fragment buffer after return from
 	 * eth_tx(), store it for retrieving in eth_tx_clean()
 	 */
 	context->tdesc_frag[queue][idx] = pkt ? pkt->frags : NULL;
+
+	if (pkt) {
+		eth_write(base_addr, DMA_TXDESC_TAIL_PTR_CH(queue),
+			  POINTER_TO_UINT(TX_DESC_TAIL_PTR(context, queue)));
+	}
 }
 
 #ifdef CONFIG_ETH_DWC_EQOS_NETWORK_PROXY
