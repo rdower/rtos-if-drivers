@@ -82,10 +82,8 @@ typedef enum IRQn {
 #define __FPU_DP 1U                     /* double precision FPU */
 
 #ifndef CONFIG_BOARD_SIMICS             /* No cache support on Simics */
-#if (!CONFIG_CACHE_DISABLE)
 #define __ICACHE_PRESENT 1U
 #define __DCACHE_PRESENT 1U
-#endif  /* CONFIG_CACHE_DISABLE */
 #endif  /* CONFIG_BOARD_SIMICS */
 
 #define __DTCM_PRESENT 1U
