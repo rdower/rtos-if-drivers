@@ -504,8 +504,6 @@ static void dma_rx_callback(sedi_dma_t dma_device, int channel_id, int event,
 	/* Stop reception if we were requested */
 	if (stream->state == I2S_STATE_STOPPING) {
 		stream->state = I2S_STATE_READY;
-		I2S_LOG_ERR(
-			"Stream state != I2S_STATE_STOPPING and so stopping capture!\n");
 		goto rx_disable;
 	}
 
@@ -537,7 +535,6 @@ static void dma_rx_callback(sedi_dma_t dma_device, int channel_id, int event,
 	return;
 
 rx_disable:
-	I2S_LOG_ERR("Disabling RX Path\n");
 	k_sem_give(&stream->dma_stop_alert);
 	rx_stream_disable(stream, dev_data, dev_data->dev_dma);
 }
